@@ -92,7 +92,9 @@ static inline void clear_feature(struct cpuinfo_x86 *c, unsigned int feature)
 		clear_cpu_cap(&boot_cpu_data, feature);
 		set_bit(feature, (unsigned long *)cpu_caps_cleared);
 	} else {
-		clear_bit(feature, (unsigned long *)c->x86_capability);
+		u32 *cap_word = get_ap_cap_word(c, feature);
+
+		clear_bit(feature & 0x1f, (unsigned long *)cap_word);
 	}
 }
 

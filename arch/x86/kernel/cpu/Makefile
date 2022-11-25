@@ -26,7 +26,7 @@ obj-y			+= rdrand.o
 obj-y			+= match.o
 obj-y			+= bugs.o
 obj-y			+= aperfmperf.o
-obj-y			+= cpuid-deps.o
+obj-y			+= cpuid-deps.o cpuid.o
 obj-y			+= umwait.o
 
 obj-$(CONFIG_PROC_FS)	+= proc.o

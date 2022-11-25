@@ -9349,7 +9349,7 @@ int kvm_arch_init(void *opaque)
 	 * FXSAVE/FXRSTOR. For example, the KVM_GET_FPU explicitly casts the
 	 * vCPU's FPU state as a fxregs_state struct.
 	 */
-	if (!boot_cpu_has(X86_FEATURE_FPU) || !boot_cpu_has(X86_FEATURE_FXSR)) {
+	if (!cpuid_info.f1.fpu || !boot_cpu_has(X86_FEATURE_FXSR)) {
 		printk(KERN_ERR "kvm: inadequate fpu\n");
 		return -EOPNOTSUPP;
 	}

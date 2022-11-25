@@ -3,36 +3,13 @@
 #define _ASM_X86_CPUFEATURE_H
 
 #include <asm/processor.h>
+#include <asm/cpuid.h>
 
 #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
 
 #include <asm/asm.h>
 #include <linux/bitops.h>
 #include <asm/alternative.h>
-
-enum cpuid_leafs
-{
-	CPUID_1_EDX		= 0,
-	CPUID_8000_0001_EDX,
-	CPUID_8086_0001_EDX,
-	CPUID_LNX_1,
-	CPUID_1_ECX,
-	CPUID_C000_0001_EDX,
-	CPUID_8000_0001_ECX,
-	CPUID_LNX_2,
-	CPUID_LNX_3,
-	CPUID_7_0_EBX,
-	CPUID_D_1_EAX,
-	CPUID_LNX_4,
-	CPUID_7_1_EAX,
-	CPUID_8000_0008_EBX,
-	CPUID_6_EAX,
-	CPUID_8000_000A_EDX,
-	CPUID_7_ECX,
-	CPUID_8000_0007_EBX,
-	CPUID_7_EDX,
-	CPUID_8000_001F_EAX,
-};
 
 #define X86_CAP_FMT_NUM "%d:%d"
 #define x86_cap_flag_num(flag) ((flag) >> 5), ((flag) & 31)
@@ -143,7 +120,7 @@ extern const char * const x86_bug_flags[NBUGINTS*32];
 
 #define boot_cpu_has(bit)	cpu_has(&boot_cpu_data, bit)
 
-#define set_cpu_cap(c, bit)	set_bit(bit, (unsigned long *)((c)->x86_capability))
+#define set_cpu_cap(c, bit)	set_bit(bit & 0x1f, (unsigned long *)get_ap_cap_word(c, bit))
 
 extern void setup_clear_cpu_cap(unsigned int bit);
 extern void clear_cpu_cap(struct cpuinfo_x86 *c, unsigned int bit);
@@ -174,13 +151,13 @@ static __always_inline bool _static_cpu_has(u16 bit)
 		ALTERNATIVE_TERNARY("jmp 6f", %P[feature], "", "jmp %l[t_no]")
 		".pushsection .altinstr_aux,\"ax\"\n"
 		"6:\n"
-		" testb %[bitnum]," _ASM_RIP(%P[cap_byte]) "\n"
+		" test %[bitnum], %[cap_word]\n"
 		" jnz %l[t_yes]\n"
 		" jmp %l[t_no]\n"
 		".popsection\n"
 		 : : [feature]  "i" (bit),
-		     [bitnum]   "i" (1 << (bit & 7)),
-		     [cap_byte] "i" (&((const char *)boot_cpu_data.x86_capability)[bit >> 3])
+		     [bitnum]   "i" (1 << (bit & 31)),
+		     [cap_word] "g" (get_boot_cpu_cap_word(bit))
 		 : : t_yes, t_no);
 t_yes:
 	return true;

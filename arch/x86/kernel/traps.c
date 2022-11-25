@@ -1326,7 +1326,7 @@ DEFINE_IDTENTRY(exc_device_not_available)
 		return;
 
 #ifdef CONFIG_MATH_EMULATION
-	if (!boot_cpu_has(X86_FEATURE_FPU) && (cr0 & X86_CR0_EM)) {
+	if (!cpuid_info.f1.fpu && (cr0 & X86_CR0_EM)) {
 		struct math_emu_info info = { };
 
 		cond_local_irq_enable(regs);

@@ -38,8 +38,7 @@ extern void fpu_flush_thread(void);
  */
 static inline void switch_fpu_prepare(struct fpu *old_fpu, int cpu)
 {
-	if (cpu_feature_enabled(X86_FEATURE_FPU) &&
-	    !(current->flags & PF_KTHREAD)) {
+	if (cpuid_info.f1.fpu && !(current->flags & PF_KTHREAD)) {
 		save_fpregs_to_fpstate(old_fpu);
 		/*
 		 * The save operation preserved register state, so the
@@ -61,7 +60,7 @@ static inline void switch_fpu_prepare(struct fpu *old_fpu, int cpu)
  */
 static inline void switch_fpu_finish(void)
 {
-	if (cpu_feature_enabled(X86_FEATURE_FPU))
+	if (cpuid_info.f1.fpu)
 		set_thread_flag(TIF_NEED_FPU_LOAD);
 }
 

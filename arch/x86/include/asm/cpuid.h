@@ -8,6 +8,8 @@
 
 #include <asm/string.h>
 
+struct cpuinfo_x86;
+
 struct cpuid_regs {
 	u32 eax, ebx, ecx, edx;
 };
@@ -18,6 +20,61 @@ enum cpuid_regs_idx {
 	CPUID_ECX,
 	CPUID_EDX,
 };
+
+enum cpuid_leafs
+{
+	CPUID_1_EDX		= 0,
+	CPUID_8000_0001_EDX,
+	CPUID_8086_0001_EDX,
+	CPUID_LNX_1,
+	CPUID_1_ECX,
+	CPUID_C000_0001_EDX,
+	CPUID_8000_0001_ECX,
+	CPUID_LNX_2,
+	CPUID_LNX_3,
+	CPUID_7_0_EBX,
+	CPUID_D_1_EAX,
+	CPUID_LNX_4,
+	CPUID_7_1_EAX,
+	CPUID_8000_0008_EBX,
+	CPUID_6_EAX,
+	CPUID_8000_000A_EDX,
+	CPUID_7_ECX,
+	CPUID_8000_0007_EBX,
+	CPUID_7_EDX,
+	CPUID_8000_001F_EAX,
+};
+
+/*
+ * All CPUID functions
+ */
+struct func_1 {
+	/* EDX */
+	union {
+		struct {
+		u32	fpu	  : 1, vme	 : 1, de	  : 1, pse	: 1,
+			tsc	  : 1, msr	 : 1, pae	  : 1, mce	: 1,
+
+			cx8	  : 1, apic	 : 1, __rsv2	  : 1, sep	: 1,
+			mtrr	  : 1, pge	 : 1, mca	  : 1, cmov	: 1,
+
+			pat	  : 1, pse36	 : 1, psn	  : 1, clfsh	: 1,
+			__rsv3	  : 1, ds	 : 1, acpi	  : 1, mmx	: 1,
+
+			fxsr	  : 1, sse	 : 1, sse2	  : 1, ss	: 1,
+			htt	  : 1, tm	 : 1, __rsv4	  : 1, pbe	: 1;
+		};
+		u32 edx;
+	} __packed;
+};
+
+struct cpuid_info {
+	struct func_1 f1;
+};
+
+extern struct cpuid_info cpuid_info;
+u32 *get_boot_cpu_cap_word(u16 bit);
+u32 *get_ap_cap_word(struct cpuinfo_x86 *c, u16 bit);
 
 #ifdef CONFIG_X86_32
 extern int have_cpuid_p(void);
@@ -167,5 +224,7 @@ static inline uint32_t hypervisor_cpuid_base(const char *sig, uint32_t leaves)
 
 	return 0;
 }
+
+void cpuid_read_leafs(void);
 
 #endif /* _ASM_X86_CPUID_H */

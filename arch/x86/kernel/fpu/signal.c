@@ -195,7 +195,7 @@ bool copy_fpstate_to_sigframe(void __user *buf, void __user *buf_fx, int size)
 	ia32_fxstate &= (IS_ENABLED(CONFIG_X86_32) ||
 			 IS_ENABLED(CONFIG_IA32_EMULATION));
 
-	if (!static_cpu_has(X86_FEATURE_FPU)) {
+	if (!cpuid_info.f1.fpu) {
 		struct user_i387_ia32_struct fp;
 
 		fpregs_soft_get(current, NULL, (struct membuf){.p = &fp,
@@ -488,7 +488,7 @@ bool fpu__restore_sig(void __user *buf, int ia32_frame)
 	if (!access_ok(buf, size))
 		goto out;
 
-	if (!IS_ENABLED(CONFIG_X86_64) && !cpu_feature_enabled(X86_FEATURE_FPU)) {
+	if (!IS_ENABLED(CONFIG_X86_64) && !cpuid_info.f1.fpu) {
 		success = !fpregs_soft_set(current, NULL, 0,
 					   sizeof(struct user_i387_ia32_struct),
 					   NULL, buf);

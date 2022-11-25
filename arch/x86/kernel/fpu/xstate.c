@@ -752,7 +752,7 @@ void __init fpu__init_system_xstate(unsigned int legacy_size)
 	int err;
 	int i;
 
-	if (!boot_cpu_has(X86_FEATURE_FPU)) {
+	if (!cpuid_info.f1.fpu) {
 		pr_info("x86/fpu: No FPU detected\n");
 		return;
 	}

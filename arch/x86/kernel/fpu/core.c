@@ -440,7 +440,7 @@ void kernel_fpu_begin_mask(unsigned int kfpu_mask)
 	if (likely(kfpu_mask & KFPU_MXCSR) && boot_cpu_has(X86_FEATURE_XMM))
 		ldmxcsr(MXCSR_DEFAULT);
 
-	if (unlikely(kfpu_mask & KFPU_387) && boot_cpu_has(X86_FEATURE_FPU))
+	if (unlikely(kfpu_mask & KFPU_387) && cpuid_info.f1.fpu)
 		asm volatile ("fninit");
 }
 EXPORT_SYMBOL_GPL(kernel_fpu_begin_mask);
@@ -505,7 +505,7 @@ static inline void fpstate_init_fstate(struct fpstate *fpstate)
  */
 void fpstate_init_user(struct fpstate *fpstate)
 {
-	if (!cpu_feature_enabled(X86_FEATURE_FPU)) {
+	if (!cpuid_info.f1.fpu) {
 		fpstate_init_soft(&fpstate->regs.soft);
 		return;
 	}
@@ -566,7 +566,7 @@ int fpu_clone(struct task_struct *dst, unsigned long clone_flags, bool minimal)
 
 	fpstate_reset(dst_fpu);
 
-	if (!cpu_feature_enabled(X86_FEATURE_FPU))
+	if (!cpuid_info.f1.fpu)
 		return 0;
 
 	/*
@@ -711,7 +711,7 @@ void fpu__clear_user_states(struct fpu *fpu)
 	WARN_ON_FPU(fpu != &current->thread.fpu);
 
 	fpregs_lock();
-	if (!cpu_feature_enabled(X86_FEATURE_FPU)) {
+	if (!cpuid_info.f1.fpu) {
 		fpu_reset_fpregs();
 		fpregs_unlock();
 		return;
@@ -749,7 +749,7 @@ void fpu_flush_thread(void)
  */
 void switch_fpu_return(void)
 {
-	if (!static_cpu_has(X86_FEATURE_FPU))
+	if (!cpuid_info.f1.fpu)
 		return;
 
 	fpregs_restore_userregs();

@@ -325,7 +325,7 @@ int fpregs_get(struct task_struct *target, const struct user_regset *regset,
 
 	sync_fpstate(fpu);
 
-	if (!cpu_feature_enabled(X86_FEATURE_FPU))
+	if (!cpuid_info.f1.fpu)
 		return fpregs_soft_get(target, regset, to);
 
 	if (!cpu_feature_enabled(X86_FEATURE_FXSR)) {
@@ -359,7 +359,7 @@ int fpregs_set(struct task_struct *target, const struct user_regset *regset,
 	if (pos != 0 || count != sizeof(struct user_i387_ia32_struct))
 		return -EINVAL;
 
-	if (!cpu_feature_enabled(X86_FEATURE_FPU))
+	if (!cpuid_info.f1.fpu)
 		return fpregs_soft_set(target, regset, pos, count, kbuf, ubuf);
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &env, 0, -1);
