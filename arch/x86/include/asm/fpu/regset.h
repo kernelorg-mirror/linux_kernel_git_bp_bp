@@ -8,11 +8,32 @@
 #include <linux/regset.h>
 
 extern user_regset_active_fn regset_fpregs_active, regset_xregset_fpregs_active;
-extern user_regset_get2_fn fpregs_get, xfpregs_get, fpregs_soft_get,
+extern user_regset_get2_fn fpregs_get, xfpregs_get,
 				 xstateregs_get;
-extern user_regset_set_fn fpregs_set, xfpregs_set, fpregs_soft_set,
+extern user_regset_set_fn fpregs_set, xfpregs_set,
 				 xstateregs_set;
 
+#ifdef CONFIG_MATH_EMULATION
+extern int fpregs_soft_get(struct task_struct *target, const struct user_regset *regset,
+			   struct membuf to);
+
+extern int fpregs_soft_set(struct task_struct *target, const struct user_regset *regset,
+			   unsigned int pos, unsigned int count, const void *kbuf,
+			   const void __user *ubuf);
+#else
+static inline int fpregs_soft_get(struct task_struct *target, const struct user_regset *regset,
+				  struct membuf to)
+{
+	return -EINVAL;
+}
+
+static inline int fpregs_soft_set(struct task_struct *target, const struct user_regset *regset,
+				  unsigned int pos, unsigned int count, const void *kbuf,
+				  const void __user *ubuf)
+{
+	return -EINVAL;
+}
+#endif
 /*
  * xstateregs_active == regset_fpregs_active. Please refer to the comment
  * at the definition of regset_fpregs_active.
