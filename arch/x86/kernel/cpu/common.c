@@ -1094,7 +1094,7 @@ void get_cpu_address_sizes(struct cpuinfo_x86 *c)
 		c->x86_phys_bits = eax & 0xff;
 	}
 #ifdef CONFIG_X86_32
-	else if (cpu_has(c, X86_FEATURE_PAE) || cpu_has(c, X86_FEATURE_PSE36))
+	else if (cpuid_info.f1.pae || cpu_has(c, X86_FEATURE_PSE36))
 		c->x86_phys_bits = 36;
 #endif
 	c->x86_cache_bits = c->x86_phys_bits;

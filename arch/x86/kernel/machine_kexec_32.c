@@ -228,7 +228,7 @@ void machine_kexec(struct kimage *image)
 	image->start = relocate_kernel_ptr((unsigned long)image->head,
 					   (unsigned long)page_list,
 					   image->start,
-					   boot_cpu_has(X86_FEATURE_PAE),
+					   cpuid_info.f1.pae,
 					   image->preserve_context);
 
 #ifdef CONFIG_KEXEC_JUMP

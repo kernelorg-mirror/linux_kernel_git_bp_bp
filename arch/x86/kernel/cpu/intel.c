@@ -457,7 +457,7 @@ static void intel_workarounds(struct cpuinfo_x86 *c)
 	 */
 	if (forcepae) {
 		pr_warn("PAE forced!\n");
-		set_cpu_cap(c, X86_FEATURE_PAE);
+		cpuid_info.f1.pae = 1;
 		add_taint(TAINT_CPU_OUT_OF_SPEC, LOCKDEP_NOW_UNRELIABLE);
 	}
 
