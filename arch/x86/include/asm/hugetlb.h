@@ -5,6 +5,6 @@
 #include <asm/page.h>
 #include <asm-generic/hugetlb.h>
 
-#define hugepages_supported() boot_cpu_has(X86_FEATURE_PSE)
+#define hugepages_supported() cpuid_info.f1.pse
 
 #endif /* _ASM_X86_HUGETLB_H */

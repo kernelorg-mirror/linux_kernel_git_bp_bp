@@ -246,7 +246,7 @@ static inline int pud_trans_huge(pud_t pud)
 #define has_transparent_hugepage has_transparent_hugepage
 static inline int has_transparent_hugepage(void)
 {
-	return boot_cpu_has(X86_FEATURE_PSE);
+	return cpuid_info.f1.pse;
 }
 
 #ifdef CONFIG_ARCH_HAS_PTE_DEVMAP

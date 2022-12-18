@@ -106,7 +106,7 @@ static int resume_physical_mapping_init(pgd_t *pgd_base)
 			 * normal page tables.
 			 * NOTE: We can mark everything as executable here
 			 */
-			if (boot_cpu_has(X86_FEATURE_PSE)) {
+			if (cpuid_info.f1.pse) {
 				set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE_EXEC));
 				pfn += PTRS_PER_PTE;
 			} else {
@@ -154,7 +154,7 @@ static int set_up_temporary_text_mapping(pgd_t *pgd_base)
 	if (!pmd)
 		return -ENOMEM;
 
-	if (boot_cpu_has(X86_FEATURE_PSE)) {
+	if (cpuid_info.f1.pse) {
 		set_pmd(pmd + pmd_index(restore_jump_address),
 		__pmd((jump_address_phys & PMD_MASK) | pgprot_val(PAGE_KERNEL_LARGE_EXEC)));
 	} else {

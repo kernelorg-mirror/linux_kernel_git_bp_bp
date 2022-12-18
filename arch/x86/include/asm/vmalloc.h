@@ -18,7 +18,7 @@ static inline bool arch_vmap_pud_supported(pgprot_t prot)
 #define arch_vmap_pmd_supported arch_vmap_pmd_supported
 static inline bool arch_vmap_pmd_supported(pgprot_t prot)
 {
-	return boot_cpu_has(X86_FEATURE_PSE);
+	return cpuid_info.f1.pse;
 }
 
 #endif

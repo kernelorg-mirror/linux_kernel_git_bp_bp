@@ -229,13 +229,13 @@ static void __init probe_page_size_mask(void)
 	 * This will simplify cpa(), which otherwise needs to support splitting
 	 * large pages into small in interrupt context, etc.
 	 */
-	if (boot_cpu_has(X86_FEATURE_PSE) && !debug_pagealloc_enabled())
+	if (cpuid_info.f1.pse && !debug_pagealloc_enabled())
 		page_size_mask |= 1 << PG_LEVEL_2M;
 	else
 		direct_gbpages = 0;
 
 	/* Enable PSE if available */
-	if (boot_cpu_has(X86_FEATURE_PSE))
+	if (cpuid_info.f1.pse)
 		cr4_set_bits_and_update_boot(X86_CR4_PSE);
 
 	/* Enable PGE if available */

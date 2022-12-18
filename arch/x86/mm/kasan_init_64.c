@@ -43,7 +43,7 @@ static void __init kasan_populate_pmd(pmd_t *pmd, unsigned long addr,
 	if (pmd_none(*pmd)) {
 		void *p;
 
-		if (boot_cpu_has(X86_FEATURE_PSE) &&
+		if (cpuid_info.f1.pse &&
 		    ((end - addr) == PMD_SIZE) &&
 		    IS_ALIGNED(addr, PMD_SIZE)) {
 			p = early_alloc(PMD_SIZE, nid, false);
