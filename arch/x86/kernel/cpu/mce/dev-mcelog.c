@@ -302,7 +302,7 @@ static ssize_t mce_chrdev_write(struct file *filp, const char __user *ubuf,
 	 * There are some cases where real MSR reads could slip
 	 * through.
 	 */
-	if (!boot_cpu_has(X86_FEATURE_MCE) || !boot_cpu_has(X86_FEATURE_MCA))
+	if (!cpuid_info.f1.mce || !boot_cpu_has(X86_FEATURE_MCA))
 		return -EIO;
 
 	if ((unsigned long)usize > sizeof(struct mce))

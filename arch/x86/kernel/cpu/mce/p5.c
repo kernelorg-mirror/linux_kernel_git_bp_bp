@@ -51,7 +51,7 @@ void intel_p5_mcheck_init(struct cpuinfo_x86 *c)
 		return;
 
 	/* Check for MCE support: */
-	if (!cpu_has(c, X86_FEATURE_MCE))
+	if (!cpuid_info.f1.mce)
 		return;
 
 	/* Read registers before enabling: */
