@@ -1096,6 +1096,7 @@ static const char *uaccess_safe_builtin[] = {
 	"clear_user_erms",
 	"clear_user_rep_good",
 	"clear_user_original",
+	"get_boot_cpu_cap_word",
 	NULL
 };
 
