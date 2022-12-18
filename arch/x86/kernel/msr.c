@@ -216,7 +216,7 @@ static int msr_open(struct inode *inode, struct file *file)
 		return -ENXIO;	/* No such CPU */
 
 	c = &cpu_data(cpu);
-	if (!cpu_has(c, X86_FEATURE_MSR))
+	if (!cpuid_info.f1.msr)
 		return -EIO;	/* MSR not supported */
 
 	return 0;
