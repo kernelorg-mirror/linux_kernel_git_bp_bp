@@ -20,9 +20,9 @@ extern void disable_TSC(void);
 
 static inline cycles_t get_cycles(void)
 {
-	if (!IS_ENABLED(CONFIG_X86_TSC) &&
-	    !cpu_feature_enabled(X86_FEATURE_TSC))
+	if (!IS_ENABLED(CONFIG_X86_TSC) && !cpuid_info.f1.tsc)
 		return 0;
+
 	return rdtsc();
 }
 #define get_cycles get_cycles

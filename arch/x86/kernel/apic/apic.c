@@ -707,7 +707,7 @@ static void __init lapic_cal_handler(struct clock_event_device *dev)
 	long tapic = apic_read(APIC_TMCCT);
 	unsigned long pm = acpi_pm_read_early();
 
-	if (boot_cpu_has(X86_FEATURE_TSC))
+	if (cpuid_info.f1.tsc)
 		tsc = rdtsc();
 
 	switch (lapic_cal_loops++) {
@@ -768,7 +768,7 @@ calibrate_by_pmtimer(long deltapm, long *delta, long *deltatsc)
 	*delta = (long)res;
 
 	/* Correct the tsc counter value */
-	if (boot_cpu_has(X86_FEATURE_TSC)) {
+	if (cpuid_info.f1.tsc) {
 		res = (((u64)(*deltatsc)) * pm_100ms);
 		do_div(res, deltapm);
 		apic_printk(APIC_VERBOSE, "TSC delta adjusted to "
@@ -946,7 +946,7 @@ static int __init calibrate_APIC_clock(void)
 	apic_printk(APIC_VERBOSE, "..... calibration result: %u\n",
 		    lapic_timer_period);
 
-	if (boot_cpu_has(X86_FEATURE_TSC)) {
+	if (cpuid_info.f1.tsc) {
 		apic_printk(APIC_VERBOSE, "..... CPU clock speed is "
 			    "%ld.%04ld MHz.\n",
 			    (deltatsc / LAPIC_CAL_LOOPS) / (1000000 / HZ),

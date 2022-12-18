@@ -2247,8 +2247,10 @@ void cpu_init(void)
 #endif
 	pr_debug("Initializing CPU#%d\n", cpu);
 
-	if (IS_ENABLED(CONFIG_X86_64) || cpuid_info.f1.vme ||
-	    boot_cpu_has(X86_FEATURE_TSC) || cpuid_info.f1.de)
+	if (IS_ENABLED(CONFIG_X86_64) ||
+			cpuid_info.f1.vme ||
+			cpuid_info.f1.tsc ||
+			cpuid_info.f1.de)
 		cr4_clear_bits(X86_CR4_VME|X86_CR4_PVI|X86_CR4_TSD|X86_CR4_DE);
 
 	/*

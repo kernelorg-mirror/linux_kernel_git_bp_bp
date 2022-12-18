@@ -1636,7 +1636,7 @@ static int __init timer_irq_works(void)
 		return 1;
 
 	local_irq_enable();
-	if (boot_cpu_has(X86_FEATURE_TSC))
+	if (cpuid_info.f1.tsc)
 		delay_with_tsc();
 	else
 		delay_without_tsc();

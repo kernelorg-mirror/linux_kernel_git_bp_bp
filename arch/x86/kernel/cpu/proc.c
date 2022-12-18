@@ -83,7 +83,7 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	if (c->microcode)
 		seq_printf(m, "microcode\t: 0x%x\n", c->microcode);
 
-	if (cpu_has(c, X86_FEATURE_TSC)) {
+	if (cpuid_info.f1.tsc) {
 		unsigned int freq = arch_freq_get_on_cpu(cpu);
 
 		seq_printf(m, "cpu MHz\t\t: %u.%03u\n", freq / 1000, (freq % 1000));

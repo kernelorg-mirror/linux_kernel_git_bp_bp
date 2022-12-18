@@ -299,7 +299,7 @@ static struct pmu pmu_msr = {
 
 static int __init msr_init(void)
 {
-	if (!boot_cpu_has(X86_FEATURE_TSC)) {
+	if (!cpuid_info.f1.tsc) {
 		pr_cont("no MSR PMU driver.\n");
 		return 0;
 	}

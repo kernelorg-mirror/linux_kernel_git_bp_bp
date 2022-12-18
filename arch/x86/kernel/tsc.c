@@ -899,7 +899,7 @@ void recalibrate_cpu_khz(void)
 #ifndef CONFIG_SMP
 	unsigned long cpu_khz_old = cpu_khz;
 
-	if (!boot_cpu_has(X86_FEATURE_TSC))
+	if (!cpuid_info.f1.tsc)
 		return;
 
 	cpu_khz = x86_platform.calibrate_cpu();
@@ -1017,7 +1017,7 @@ static struct notifier_block time_cpufreq_notifier_block = {
 
 static int __init cpufreq_register_tsc_scaling(void)
 {
-	if (!boot_cpu_has(X86_FEATURE_TSC))
+	if (!cpuid_info.f1.tsc)
 		return 0;
 	if (boot_cpu_has(X86_FEATURE_CONSTANT_TSC))
 		return 0;
@@ -1227,7 +1227,7 @@ static void __init check_system_tsc_reliable(void)
  */
 int unsynchronized_tsc(void)
 {
-	if (!boot_cpu_has(X86_FEATURE_TSC) || tsc_unstable)
+	if (!cpuid_info.f1.tsc || tsc_unstable)
 		return 1;
 
 #ifdef CONFIG_SMP
@@ -1404,7 +1404,7 @@ unreg:
 
 static int __init init_tsc_clocksource(void)
 {
-	if (!boot_cpu_has(X86_FEATURE_TSC) || !tsc_khz)
+	if (!cpuid_info.f1.tsc || !tsc_khz)
 		return 0;
 
 	if (tsc_unstable)
@@ -1498,7 +1498,7 @@ static void __init tsc_enable_sched_clock(void)
 
 void __init tsc_early_init(void)
 {
-	if (!boot_cpu_has(X86_FEATURE_TSC))
+	if (!cpuid_info.f1.tsc)
 		return;
 	/* Don't change UV TSC multi-chassis synchronization */
 	if (is_early_uv_system())
@@ -1517,7 +1517,7 @@ void __init tsc_init(void)
 	if (x86_platform.calibrate_cpu == native_calibrate_cpu_early)
 		x86_platform.calibrate_cpu = native_calibrate_cpu;
 
-	if (!boot_cpu_has(X86_FEATURE_TSC)) {
+	if (!cpuid_info.f1.tsc) {
 		setup_clear_cpu_cap(X86_FEATURE_TSC_DEADLINE_TIMER);
 		return;
 	}
