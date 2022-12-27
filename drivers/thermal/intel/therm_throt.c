@@ -630,7 +630,7 @@ void intel_thermal_interrupt(void)
 /* Thermal monitoring depends on APIC, ACPI and clock modulation */
 static int intel_thermal_supported(struct cpuinfo_x86 *c)
 {
-	if (!boot_cpu_has(X86_FEATURE_APIC))
+	if (!cpuid_info.f1.apic)
 		return 0;
 	if (!cpu_has(c, X86_FEATURE_ACPI) || !cpu_has(c, X86_FEATURE_ACC))
 		return 0;

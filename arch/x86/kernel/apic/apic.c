@@ -808,7 +808,7 @@ bool __init apic_needs_pit(void)
 		return true;
 
 	/* Is there an APIC at all or is it disabled? */
-	if (!boot_cpu_has(X86_FEATURE_APIC) || disable_apic)
+	if (!cpuid_info.f1.apic || disable_apic)
 		return true;
 
 	/*
@@ -1254,7 +1254,7 @@ void lapic_shutdown(void)
 {
 	unsigned long flags;
 
-	if (!boot_cpu_has(X86_FEATURE_APIC) && !apic_from_smp_config())
+	if (!cpuid_info.f1.apic && !apic_from_smp_config())
 		return;
 
 	local_irq_save(flags);
@@ -1305,7 +1305,7 @@ static int __init __apic_intr_mode_select(void)
 	/* Check BIOS */
 #ifdef CONFIG_X86_64
 	/* On 64-bit, the APIC must be integrated, Check local APIC only */
-	if (!boot_cpu_has(X86_FEATURE_APIC)) {
+	if (!cpuid_info.f1.apic) {
 		disable_apic = 1;
 		pr_info("APIC disabled by BIOS\n");
 		return APIC_PIC;
@@ -1314,13 +1314,13 @@ static int __init __apic_intr_mode_select(void)
 	/* On 32-bit, the APIC may be integrated APIC or 82489DX */
 
 	/* Neither 82489DX nor integrated APIC ? */
-	if (!boot_cpu_has(X86_FEATURE_APIC) && !smp_found_config) {
+	if (!cpuid_info.f1.apic && !smp_found_config) {
 		disable_apic = 1;
 		return APIC_PIC;
 	}
 
 	/* If the BIOS pretends there is an integrated APIC ? */
-	if (!boot_cpu_has(X86_FEATURE_APIC) &&
+	if (!cpuid_info.f1.apic &&
 		APIC_INTEGRATED(boot_cpu_apic_version)) {
 		disable_apic = 1;
 		pr_err(FW_BUG "Local APIC %d not detected, force emulation\n",
@@ -1373,7 +1373,7 @@ void __init init_bsp_APIC(void)
 	 * Don't do the setup now if we have a SMP BIOS as the
 	 * through-I/O-APIC virtual wire mode might be active.
 	 */
-	if (smp_found_config || !boot_cpu_has(X86_FEATURE_APIC))
+	if (smp_found_config || !cpuid_info.f1.apic)
 		return;
 
 	/*
@@ -1776,7 +1776,7 @@ static void __x2apic_disable(void)
 {
 	u64 msr;
 
-	if (!boot_cpu_has(X86_FEATURE_APIC))
+	if (!cpuid_info.f1.apic)
 		return;
 
 	rdmsrl(MSR_IA32_APICBASE, msr);
@@ -1991,7 +1991,7 @@ void __init enable_IR_x2apic(void)
  */
 static int __init detect_init_APIC(void)
 {
-	if (!boot_cpu_has(X86_FEATURE_APIC)) {
+	if (!cpuid_info.f1.apic) {
 		pr_info("No local APIC present\n");
 		return -1;
 	}
@@ -2072,14 +2072,14 @@ static int __init detect_init_APIC(void)
 		break;
 	case X86_VENDOR_INTEL:
 		if (boot_cpu_data.x86 == 6 || boot_cpu_data.x86 == 15 ||
-		    (boot_cpu_data.x86 == 5 && boot_cpu_has(X86_FEATURE_APIC)))
+		    (boot_cpu_data.x86 == 5 && cpuid_info.f1.apic))
 			break;
 		goto no_apic;
 	default:
 		goto no_apic;
 	}
 
-	if (!boot_cpu_has(X86_FEATURE_APIC)) {
+	if (!cpuid_info.f1.apic) {
 		/*
 		 * Over-ride BIOS and try to enable the local APIC only if
 		 * "lapic" specified.
@@ -2829,7 +2829,7 @@ static void apic_pm_activate(void)
 static int __init init_lapic_sysfs(void)
 {
 	/* XXX: remove suspend/resume procs if !apic_pm_state.active? */
-	if (boot_cpu_has(X86_FEATURE_APIC))
+	if (cpuid_info.f1.apic)
 		register_syscore_ops(&lapic_syscore_ops);
 
 	return 0;

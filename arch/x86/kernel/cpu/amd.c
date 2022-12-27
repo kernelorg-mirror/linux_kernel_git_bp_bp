@@ -642,7 +642,7 @@ static void early_init_amd(struct cpuinfo_x86 *c)
 	 * can safely set X86_FEATURE_EXTD_APICID unconditionally for families
 	 * after 16h.
 	 */
-	if (boot_cpu_has(X86_FEATURE_APIC)) {
+	if (cpuid_info.f1.apic) {
 		if (c->x86 > 0x16)
 			set_cpu_cap(c, X86_FEATURE_EXTD_APICID);
 		else if (c->x86 >= 0xf) {

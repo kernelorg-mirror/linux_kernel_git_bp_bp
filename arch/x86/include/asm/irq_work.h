@@ -7,7 +7,7 @@
 #ifdef CONFIG_X86_LOCAL_APIC
 static inline bool arch_irq_work_has_interrupt(void)
 {
-	return boot_cpu_has(X86_FEATURE_APIC);
+	return cpuid_info.f1.apic;
 }
 extern void arch_irq_work_raise(void);
 #else

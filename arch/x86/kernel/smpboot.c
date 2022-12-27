@@ -1522,7 +1522,7 @@ __init void prefill_possible_map(void)
 
 	/* No boot processor was found in mptable or ACPI MADT */
 	if (!num_processors) {
-		if (boot_cpu_has(X86_FEATURE_APIC)) {
+		if (cpuid_info.f1.apic) {
 			int apicid = boot_cpu_physical_apicid;
 			int cpu = hard_smp_processor_id();
 

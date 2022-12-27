@@ -932,7 +932,7 @@ static int __init longhaul_init(void)
 	}
 #endif
 #ifdef CONFIG_X86_IO_APIC
-	if (boot_cpu_has(X86_FEATURE_APIC)) {
+	if (cpuid_info.f1.apic) {
 		pr_err("APIC detected. Longhaul is currently broken in this configuration.\n");
 		return -ENODEV;
 	}

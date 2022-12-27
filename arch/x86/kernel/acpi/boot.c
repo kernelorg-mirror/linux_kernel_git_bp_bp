@@ -132,7 +132,7 @@ static int __init acpi_parse_madt(struct acpi_table_header *table)
 {
 	struct acpi_table_madt *madt = NULL;
 
-	if (!boot_cpu_has(X86_FEATURE_APIC))
+	if (!cpuid_info.f1.apic)
 		return -EINVAL;
 
 	madt = (struct acpi_table_madt *)table;
@@ -1071,7 +1071,7 @@ static int __init early_acpi_parse_madt_lapic_addr_ovr(void)
 {
 	int count;
 
-	if (!boot_cpu_has(X86_FEATURE_APIC))
+	if (!cpuid_info.f1.apic)
 		return -ENODEV;
 
 	/*
@@ -1098,7 +1098,7 @@ static int __init acpi_parse_madt_lapic_entries(void)
 	int ret;
 	struct acpi_subtable_proc madt_proc[2];
 
-	if (!boot_cpu_has(X86_FEATURE_APIC))
+	if (!cpuid_info.f1.apic)
 		return -ENODEV;
 
 	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_SAPIC,
@@ -1251,7 +1251,7 @@ static int __init acpi_parse_madt_ioapic_entries(void)
 	if (acpi_disabled || acpi_noirq)
 		return -ENODEV;
 
-	if (!boot_cpu_has(X86_FEATURE_APIC))
+	if (!cpuid_info.f1.apic)
 		return -ENODEV;
 
 	/*

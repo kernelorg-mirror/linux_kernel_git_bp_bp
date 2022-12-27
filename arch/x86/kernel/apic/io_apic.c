@@ -1438,7 +1438,7 @@ void native_restore_boot_irq_mode(void)
 		ioapic_write_entry(ioapic_i8259.apic, ioapic_i8259.pin, entry);
 	}
 
-	if (boot_cpu_has(X86_FEATURE_APIC) || apic_from_smp_config())
+	if (cpuid_info.f1.apic || apic_from_smp_config())
 		disconnect_bsp_APIC(ioapic_i8259.pin != -1);
 }
 

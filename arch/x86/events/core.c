@@ -1801,7 +1801,7 @@ static int x86_pmu_dying_cpu(unsigned int cpu)
 
 static void __init pmu_check_apic(void)
 {
-	if (boot_cpu_has(X86_FEATURE_APIC))
+	if (cpuid_info.f1.apic)
 		return;
 
 	x86_pmu.apic = 0;

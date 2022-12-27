@@ -71,13 +71,13 @@ static int noop_apic_id_registered(void)
 
 static u32 noop_apic_read(u32 reg)
 {
-	WARN_ON_ONCE(boot_cpu_has(X86_FEATURE_APIC) && !disable_apic);
+	WARN_ON_ONCE(cpuid_info.f1.apic && !disable_apic);
 	return 0;
 }
 
 static void noop_apic_write(u32 reg, u32 v)
 {
-	WARN_ON_ONCE(boot_cpu_has(X86_FEATURE_APIC) && !disable_apic);
+	WARN_ON_ONCE(cpuid_info.f1.apic && !disable_apic);
 }
 
 #ifdef CONFIG_X86_32

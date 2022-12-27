@@ -273,7 +273,7 @@ static void early_init_hygon(struct cpuinfo_x86 *c)
 	 * ApicID can always be treated as an 8-bit value for Hygon APIC So, we
 	 * can safely set X86_FEATURE_EXTD_APICID unconditionally.
 	 */
-	if (boot_cpu_has(X86_FEATURE_APIC))
+	if (cpuid_info.f1.apic)
 		set_cpu_cap(c, X86_FEATURE_EXTD_APICID);
 #endif
 

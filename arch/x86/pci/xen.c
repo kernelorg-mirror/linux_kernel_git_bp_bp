@@ -523,7 +523,7 @@ static void __init xen_hvm_msi_init(void)
 		uint32_t eax = cpuid_eax(xen_cpuid_base() + 4);
 
 		if (((eax & XEN_HVM_CPUID_X2APIC_VIRT) && x2apic_mode) ||
-		    ((eax & XEN_HVM_CPUID_APIC_ACCESS_VIRT) && boot_cpu_has(X86_FEATURE_APIC)))
+		    ((eax & XEN_HVM_CPUID_APIC_ACCESS_VIRT) && cpuid_info.f1.apic))
 			return;
 	}
 	xen_setup_pci_msi();
