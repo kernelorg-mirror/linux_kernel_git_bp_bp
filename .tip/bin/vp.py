@@ -6,6 +6,8 @@ vp.py - Patch verifier and massager tool
 
 # TODO (and potential ideas):
 #
+# selftests?
+#
 # Add a _verify.cfg.example config file so that the user can adjust it herself
 #
 # extend the function-name-needs-a-verb check to when the patch is adding a new function - there
@@ -197,22 +199,24 @@ dc = None
 dc_words = [ "3rd", "accessor", "ACPI", "AER", "allocator", "AMD", "AMD64",
          # that's some stupid dictionary
          "amongst", "AMX", "APEI", "APIC", "arm64", "ASID", "asm",
-         "binutils", "bool", "breakpoint", "brk", "BTF", "btree",
-         "C1E", "cacheline", "callee", "CET", "CLAC", "clocksource", "CMCI", "cmdline", "CMOV", "CMPXCHG",
-         "Coccinelle", "codename", "CPER", "CPPC", "CPUID", "CRIU", "cryptographic", "Cyrix",
+         "BDA", "binutils", "bool", "breakpoint", "brk", "BTF", "btree",
+         "C1E", "cacheline", "callee", "CET", "CFI", "checkable", "chronomancy", "CLAC", "clocksource", "CMCI",
+         "cmdline", "CMOV", "CMOS",
+         "CMPXCHG", "Coccinelle", "codename", "CPER", "CPPC", "CPUID", "CRIU", "cryptographic", "Cyrix",
          "DCT", "debugfs", "devicetree",
          "DF", "distro", "DMA", "dmesg", "DOSEMU", "DPL",
-         "e820", "EAX", "EBDA", "ECC", "EDAC", "EFER", "EHCI", "enablement",
-         "ENDBR", "ENQCMD", "EPT", "ERMS", "extern", "filesystem", 
-         "fixup", "gcc", "GCM", "GDT", "GHES", "goto", "GSBASE", "GUID", "HEST", "hotplug", "hugepage", "Hygon",
+         "e820", "EAX", "EBDA", "ECC", "EDAC", "EFER", "EHCI", "enablement", "enum",
+         "ENDBR", "ENQCMD", "EPT", "ERMS", "extern", "FADT", "filesystem", 
+         "fixup", "gcc", "GCM", "GHES", "goto", "GSBASE", "GUID",
+         "HBM", "HEST", "hotplug", "hugepage", "Hygon",
          "HyperV", "HugeTLB", "HV", "hwpoison",
-         "i915", "I/O", "IBPB", "IBS", "ifdeffery", "IMA", "immediates", "init", "inlined",
-         "INT3", "IPI", "IRET", "IOMMU", "IRQ", "ISR", "Jcc", 
-         "kallsyms", "KASAN", "Kbuild", "Kconfig", "kdump", "kexec", "kmemleak", "kobject", "kPTI",
-         "LFENCE", "libc", "linux", "livepatch", "LKGS", "LLCC", "LSB", "lvalue", "LVT", "MADT",
-         "maintainership", "Makefile",
-         "MCE", "MDS", "memfd", "mitigations", "MKTME", "MMIO", "MMU", "modpost", "ModRM", "MWAIT",
-         "NIST", "NOHZ", "NUMA", "NX",
+         "i915", "I/O", "IA32", "IBPB", "IBS", "ifdeffery", "IMA", "immediates", "init",
+         "INT3", "interposer", "IRET", "IOMMU", "IRQ", "ISR", "Jcc", 
+         "kallsyms", "Kbuild", "Kconfig", "kdump", "kexec", "kmemleak", "kobject", "kPTI",
+         "LFENCE", "linux", "livepatch", "LKGS", "LLCC", "lookups", "LSB", "lvalue", "LVT", "MADT",
+         "madvise", "maintainership", "Makefile",
+         "MCE", "MDS", "memfd", "mitigations", "MKTME", "MMIO", "MMU", "ModRM", "MWAIT",
+         "NIST", "NOHZ", "northbridge", "NUMA", "NX",
          "objtool", "OEM", "ok", "oneliner", "onlined", "ORL", "OVMF", "pahole", "paravisor",
          "passthrough", "pdf", "percpu",
          "perf", "PKRU", "PPIN", "preemptible",
@@ -220,77 +224,82 @@ dc_words = [ "3rd", "accessor", "ACPI", "AER", "allocator", "AMD", "AMD64",
          "prefetch", "preprocessor", "printk", "pthread",
          "PV", "PVALIDATE", "QEMU",
          "RAS", "ratelimit", "refcount", "resctrl", "repurposing", "RCU", "RDT", "RDTSC", "RET",
-         "rFLAGS", "RMPUPDATE", "RNG", "ROP", "RSB", "RSTORSSP", "RTM", "runtime", "Ryzen",
-         "s390", "scalable", "seccomp", "selftest", "SETcc",
-         "SGX", "SHSTK", "sideband", "sigreturn", "Skylake", "SLS", "Smatch", "SMBA", "SMN", "SoC", "SPDX", "SRBDS",
+         "rFLAGS", "RNG", "ROP", "RSB", "RSTORSSP", "runtime", "Ryzen",
+         "s390", "SAVEPREVSSP", "scalable", "seccomp", "selftest", "SETcc",
+         "SGX", "SHSTK", "sideband", "Skylake", "SLS", "Smatch", "SMBA", "SMN", "SoC", "SPDX",
+         "spinlock", "SRBDS",
          "STAC", "STLF", "stringify", "struct", "SWAPGS", "swiotlb",
          "symtab", "Synopsys", "SYSENTER", "sysfs", "TAA", "TCC", "TDCALL", "TDGETVEINFO",
-         "TDVMCALL", "tl;dr", "TLB", "tmpfs", "TODO",
+         "TDVMCALL", "tl;dr", "tmpfs", "TODO",
          "TPM", "tracepoint", "TSC", "TZCNT", "UC", "uarch", "udev", "uncore",
-         "unwinder", "userspace", "vCPU", "vDSO", "VERW", "VLA",
-         "vsyscall", "vTOM",
-         "WBINVD", "WRMSR",
-         "x2APIC", "XCR0", "Xeon", "Xilinx", "XSS" ]
+         "unwinder", "userspace", "vCPU", "vDSO", "VERW", "vfork", "VLA", "vTOM",
+         "WBINVD", "workqueue", "WRMSR",
+         "x2APIC", "x32", "XCR0", "Xeon", "Xilinx", "xmm", "XSS" ]
 
 dc_non_words = [ "E820", "X86" ]
 
 # prominent kernel vars, etc which get mentioned often in commit messages and comments
 known_vars = [ 'alignof', '__BOOT_DS', 'boot_cpu_data', 'bzImage', 'clearcpuid', 'cpumask', 'dom0', 'earlyprintk',
            'fpstate', 'gfn', 'hva', 'idtentry', 'kobj_type',
-           'kptr_restrict', 'kthread', 'libvirt', 'mmap', 'noinstr', 'offsetof', 'pt_regs',
+           'kptr_restrict', 'kthread', 'libvirt', 'noinstr', 'offsetof', 'pt_regs',
            'pte_t', 'ptr', 'pvops', 'readelf', 'realmode', 'set_lvt_off', 'setup_data', 'shstk',
            'sme_me_mask', 'sysctl_perf_event_paranoid', 'threshold_banks', 'vfio', 'virtio_gpu',
-           'vmlinux', 'xarray', 'xfeatures' ]
+           'xarray', ]
 
 # known words as regexes to avoid duplication in the list above
 regexes_pats = [ r'^(32|64)-?bit$',
             r'^U?ABI$', r'^AES-GCM$',
             r'^all(mod|yes)config$',
-            r'^AP[IMU]$', r'^[kK]?ASLR$',
+            r'^AP[IMU]s?$', r'^[kK]?ASLR$',
             r'^AVX(512)?(-FP16)?$', r'backends?$',
             r'BIOS(e[sn])?', r'^bit(field|mask)$', r'[Bb]oolean$', r'boot(able|loader|up)', r'boot_params([\.\w_]+)?$',
             r'BS[FPS]$', r'^B[HT]B$',
-            r'^C[1-6]$', r'^C[BS]M$', r'^configs?$', r'^const(ify)?$',
+            r'^C[1-6]$', r'^C[BS]M$', r'^CMP(XCHG)?$',
+            r'^configs?$', r'^const(ify)?$',
             r'^CPU(\d+|s)?$', r'^cpuinfo(_x86)?$', r'^CR[0-4]$',
             r'^(en|de)crypt(ed|s)$', r'^DIMMs?$',
             r'^DDR([1-5])?$', r'default_(attrs|groups)', r'^D[oO]S$',
             r'^S?DRAM$',
             r'^[Ee].g.$', r'^[eE]?IBRS$', r'^E?VEX$',
             r'^F[PR]U$', r'^[pf]trace$',
-            r'^GHC(B|I)$', r'^GP[LR]$',
+            r'^GD[BT]$', r'^GHC(B|I)$', r'g?libc$', r'^GPL$', r'^GP[RU]s?$',
             r'^hypercalls?$', r'^HL[ET]$', r'^i38[67]$',
             r'^Icelake(-D)?$', r'I[BDS]T', r'^INCSSPQ?$', r'init(ializer|rd|ramfs)?',
-            r'^(in|off)lining$', r'^invalidations?$', r'^ioctls?$',
-            r'(?i)^jmp$', r'^(k[cm]|vm)alloc$',
+            r'^(in|off)lin(ing|e[ds])$', r'^[Ii]nvalidations?$', r'^INVLPGB?$', r'^ioctls?$', r'^IPIs?$',
+            r'(?i)^jmp$', r'^(KA|UB)SAN$', r'(?i)^kaslr$', r'^(k[cm]|vm)alloc$',
             r'^[ku]probes?$', r'(?i)kvm$', r'^L[0-3]$', r'^LL(C|VM)$',
+            r'^(fix|iore|m)maps?$',
             r'S?MCA$', r'^[Mm]em(block|cpy|move|remap|set|type)$', r'^memslots?$',
             r'^microarchitectur(al|e)$', r'^mispredict(ed)?$', r'^mmap(ping)?$',
+            r'^mod(post|probe)$',
             r'MOV([SB]|DIR64B)?', r'^MSRs?$', r'^MTRRs?$', r'^[NS]MI$', r'^NOPs?$',
             r'^param(s)?$',
             r'^([Pp]ara)?virt(ualiz(ed|ing|ation))?$',
             # embedded modifier which goes at the beginning of the regex
-            r'(?i)^pasid$', r'^PCIe?$', r'^per-(cpu|CPU)$', r'^P(TE|[GM]D)s?$', r'PS[CP]', r'^P[MU]D$',
+            r'(?i)^pasid$', r'^PCI[De]?$', r'^per-(cpu|CPU)$', r'(?i)^P(TE|[GM]D)s?$', r'^PFNs?$', 
+            r'PS[CP]', r'^P[MU]D$',
             r'^Q[oO]S$',
             r'RD(MSR|RAND|SEED)$', r'^reloc(ation)?s?$', r'[Rr]etpolines?$',
-            r'^RMIDs?$', r'^RMP(ADJUST)?$',
+            r'^RMIDs?$', r'^RMP(ADJUST|READ|UPDATE)?$', r'^RT[CM]$',
             r'^S[DM]M$',
             r'sev_(features|status)', r'^SEV(-(ES|SNP))?$', r'(?i)^SHA(1|256|512|384)$',
-            r'^SH[LR]$', r'^SIG(BUS|SEGV)$',
+            r'^SH[LR]$', r'^sig(frame|return)$', r'^(sig)?longjmp$', r'^SIG(BUS|SEGV)$',
             r'^SM[ET]$', r'^S[MNS]P$',
             r'^SM[AE]P$', r'^S[oO]Cs?$', r'^[Ss]pectre(_v2)*$', r'SRA[ST]$', r'^steppings?$', r'^STI(BP)?$',
             r'^str(lcat|[lns]cpy|tab)$', r'^SV[AM]$',
-            r'T[DS]X', r'^u(16|32|64)$',
-            r'^U?EFI$', r'^UM[CL]$', r'^unmap(ping)?$',
-            r'(?i)^un(cache(e?able|d)|correctable|initialized|map|mount|trusted)$',
-            r'^v?syscall$', r'^VMAs?$', r'^VMS?A$', r'^VMs?$', r'^VMC[BS]$', r'^VMG?E(xit|XIT)$', r'^VM[MX]?$',
+            r'T[DS]X', r'^TLB(SYNC)?$', r'^TOM2?$', r'^u(16|32|64)$',
+            r'^U?EFI$', r'^UM[CL]s?$', r'^unmap(ping)?$',
+            r'(?i)^un(cache(e?able|d)|correctable|initialized|map|mount|trusted)$', r'^vmlinu[zx]$',
+            r'^v?syscalls?$', r'^VMAs?$', r'^VMS?A$', r'^VMs?$', r'^VMC[BS]$', r'^VMG?E(xit|XIT)$', r'^VM[MX]?$',
             r'^VM(CALL|ENTER|LAUNCH|RESUME|RUN|ware)$', r'^VMPCKs?$',
             r'^VMPL([0-3])?$', r'^[dq]words?$', r'^WRU?SS$',
-            r'^x86(-(32|64))?$', r'^(Xen(PV)?|XENPV)$', r'^XSAVE[CS]?$', r'^[CX]STATE$', r'^[Zz]en[1-4]$' ]
+            r'^x86(-(32|64))?$', r'^(Xen(PV)?|XENPV)$', r'^xfeatures?$', r'^XSAVE[CS]?$', r'^[CX]STATE$',
+            r'^[Zz]en[1-4]$' ]
 
 def load_spellchecker():
     global dc, regexes, regexes_pats, rex_abs_fnames, rex_amd_fam, rex_array_elem, rex_asm_dir, \
         rex_brackets, rex_c_keywords, rex_c_macro, rex_comment, rex_comment_end, \
-rex_commit_ref, rex_constant, rex_debug_regs, rex_decimal, rex_errval, rex_fnames, rex_gpr, rex_hyphenated, \
+rex_commit_ref, rex_constant, rex_debug_regs, rex_decimal, rex_errval, rex_fnames, rex_gpr, rex_hex, rex_hyphenated, \
 rex_kcmdline, rex_kdoc_arg, rex_kdoc_cmt, rex_misc_num, rex_non_alpha, \
 rex_opts, rex_paths, rex_reg_field, rex_regs, rex_sections, rex_sha1, \
 rex_struct_mem, rex_units, rex_url, rex_version, rex_word_bla, \
@@ -305,7 +314,8 @@ rex_word_split, rex_x86_exc
         dc.remove(w)
 
     # compile all regexes
-    # Use /usr/share/doc/pythonX.X/examples/demo/redemo.py for checking
+    # Use /usr/share/doc/pythonX.X/examples/demo/redemo.py for checking or
+    # https://github.com/python/cpython/tree/X.XX/Tools/demo/redemo.py
 
     # match only absolute filenames, for regex simplicity
     # \W is consuming the char so make sure you replace with ' '
@@ -345,6 +355,8 @@ rex_word_split, rex_x86_exc
                                        [re][bs]p)       # the last 2
                                         """, re.I | re.X | re.VERBOSE)
 
+    # hex digits: 0x... or ...Hh
+    rex_hex         = re.compile(r'(0x[0-9A-Fa-f]+|[0-9A-Fa-f]+[Hh])')
     rex_hyphenated  = re.compile(r'([\w#-]+)-([\w#-]+)')
     rex_kcmdline    = re.compile(r'^\w+=([\w,]+)?$')
     rex_kdoc_arg    = re.compile(r'^@\w+:?$')
@@ -368,12 +380,12 @@ rex_word_split, rex_x86_exc
     rex_sha1        = re.compile(r'[a-f0-9]{12,40}\s?\(?"\w+"\)?', re.I)
 
     # , for digit group (thousands) separation
-    rex_units       = re.compile(r'^(0x[0-9a-f]+|[0-9,]+([GMKP](i?b)|bytes)?)$', re.I)
+    rex_units       = re.compile(r'^(0x[0-9a-f]+|[0-9,]+(([GMKP](i?b)|bytes)?|ms))$', re.I)
     rex_url         = re.compile(r'https?://[a-z0-9:/.-]+')
     rex_version     = re.compile(r'v\d+$', re.I)
     rex_word_bla    = re.compile(r'non-(\w+)')
     rex_word_split  = re.compile(r'(\w+)\/(\w+)')
-    rex_x86_exc   = re.compile(r'^#(CP|DB|GP|MC|NM|NPF|VC)$')
+    rex_x86_exc   = re.compile(r'^#(CP|DB|GP|MC|NM|N?PF|VC)$')
 
     # precompile all regexes
     for pat in regexes_pats:
@@ -652,6 +664,12 @@ def spellcheck(s, where, flags):
                 dbg(f"Skip constant number [{w}], match [{ m.group(0) }]")
                 continue
 
+            # hex numbers
+            m = rex_hex.match(w)
+            if m:
+                    dbg(f"Skip hex number [{w}]")
+                    continue
+
             # x86 exceptions etc
             if rex_x86_exc.match(w):
                 dbg(f"Skip x86 exception vector name: [{w}]")
@@ -778,8 +796,7 @@ class Patch:
         # the actual diff
         self.diff = None
 
-        self.no_link_check = False
-        self.no_link_tag = False
+        self.no_link = False
 
         # init ordered dictionary for tags processing
         self.od = collections.OrderedDict()
@@ -787,6 +804,7 @@ class Patch:
         self.od['Fixes'] = []
         self.od['Reported-by'] = []
         self.od['Suggested-by'] = []
+        self.od['Originally-by'] = []
         self.od['Signed-off-by'] = []
         # Co-developed-by: should be behind the SOB because format_tags() is picking the proper
         # one out so no need for that order here
@@ -947,7 +965,7 @@ f"""Class patch:
             pname = self.subject
 
         # remove funny chars
-        pname = re.sub(r'[\',()\[\]!&<>$"|\*;`]', '', pname)
+        pname = re.sub(r'[\',()\[\]!&<>$"|\*;`\\]', '', pname)
         pname = re.sub(r'[:/]\s?', '-', pname)
         pname = pname.lower()
         pname = re.sub(r'\s+', '_', pname)
@@ -1009,6 +1027,7 @@ f"""Class patch:
                 verify_include_paths(f, hunk)
                 check_for_asserts(f, hunk)
                 check_for_deprecated_apis(f, hunk)
+                check_for_todos(f, hunk)
 
     def __insert_tag(self, tag, name):
         try:
@@ -1256,10 +1275,8 @@ f"""Class patch:
                 if tag == "Signed-off-by":
                     # Sender name might be in "" due to a middle initial
                     sender = re.sub(r'"', "", self.sender)
-    
+
                     for t in od['Signed-off-by']:
-    
-                        dbg(f"t:{t}, sender: {sender}")
 
                         if sender == t:
                             return True
@@ -1283,9 +1300,9 @@ f"""Class patch:
                 return False
                 ## eoim: End of Internal Method
 
-            if not verify_tags_sender(od):
-                info(f"Sender [{ sender }] hasn't signed off on the patch!")
-                warn(f"Sender [{ sender }] hasn't signed off on the patch!")
+        if not verify_tags_sender(od):
+            info(f"Sender [{ self.sender }] hasn't signed off on the patch!")
+            warn(f"Sender [{ self.sender }] hasn't signed off on the patch!")
 
         for tag in od:
             if not od[tag]:
@@ -1347,7 +1364,7 @@ f"""Class patch:
             prefix = ""
 
             # check it
-            if not self.no_link_check:
+            if not self.no_link:
                 try:
                     get = requests.get(link_url)
                     if get.status_code != 200:
@@ -1356,12 +1373,12 @@ f"""Class patch:
                     warn(f"Exception {e} while trying to get URL: { link_url }")
                     prefix = "URL UNVERIFIED: "
 
-            # do not add this message-id as a Link tag:
-            if self.no_link_tag:
-                return
+                # do not add this message-id as a Link tag:
+                # if self.no_link_tag:
+                # return
 
-            info(f"Link: { prefix }{ link_url }\n")
-            f.write(f"Link: { prefix }{ link_url }\n")
+                info(f"Link: { prefix }{ link_url }\n")
+                f.write(f"Link: { prefix }{ link_url }\n")
 
     def process_patch(self):
         """
@@ -1604,7 +1621,18 @@ def  check_for_deprecated_apis(pfile, h):
             warn_on(m, f"""{ pfile }:{ line.target_line_no }: Do not use { m.group(1) }() - """
                         """use cpu_feature_enabled() instead.\n""")
 
+# check for unfinished business
+def check_for_todos(pfile, h):
+    if not h.added:
+        return
 
+    rex_todo = re.compile(r'^.*TODO.*')
+
+    for line in h.target_lines():
+        l = str(line)
+
+        warn_on(rex_todo.match(l),
+                f"{ pfile }:{ line.target_line_no }: Hunk contains unfinished TODO:\n{ l }\n")
 
 def verify_commit_quotation(linenum, prev, cur, nxt):
     """
@@ -1672,8 +1700,7 @@ def main(args):
 
     print(p)
 
-    p.no_link_check = args.no_link_check
-    p.no_link_tag   = args.no_link_tag
+    p.no_link = args.no_link
 
     p.format_patch()
 
@@ -1726,15 +1753,15 @@ def init_parser():
 
     parser.add_argument('infile', nargs=1)
 
-    parser.add_argument("--no-link-check",
+    parser.add_argument("--no-link",
                         action="store_true",
                         default=False,
-                        help="Do not check whether the Link tag URL is accessible")
+                        help="Do not check whether the Link tag URL is accessible, or add it")
 
-    parser.add_argument("--no-link-tag",
-                        action="store_true",
-                        default=False,
-                        help="Do not add a Link tag")
+#    parser.add_argument("--no-link-tag",
+#                        action="store_true",
+#                        default=False,
+#                        help="Do not add a Link tag")
 
     parser.add_argument("-v", "--verbose",
                         action="count",
