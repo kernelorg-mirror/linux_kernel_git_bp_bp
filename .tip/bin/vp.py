@@ -1258,67 +1258,6 @@ f"""Class patch:
         flags = { 'check_func': True }
         spellcheck(self.commit_msg, "commit message", flags)
 
-    def verify_tags(self):
-        od = self.od
-
-        # internal method, let's try this travesty.
-        #
-        # Return true if sender has SOBed the patch. False otherwise.
-        def verify_tags_sender(od):
-            rex_remove_email_addr = re.compile(r'(.*)\W\<.*$', re.I)
-            rex_email_addr = re.compile(r'([a-z._]+@[a-z._]+)>?', re.I)
-
-            for tag in od:
-                if not od[tag]:
-                    continue
-
-                if tag == "Signed-off-by":
-                    # Sender name might be in "" due to a middle initial
-                    sender = re.sub(r'"', "", self.sender)
-
-                    for t in od['Signed-off-by']:
-
-                        if sender == t:
-                            return True
-
-                        # see if the names match, i.e., using different email addresses
-                        sender_name = re.sub(rex_remove_email_addr, r'\1', sender)
-                        sob_name    = re.sub(rex_remove_email_addr, r'\1', t)
-
-                        if sender_name == sob_name:
-                            return True
-
-                        # otherwise, see if the email addresses match
-                        m1 = re.search(rex_email_addr, sender)
-                        m2 = re.search(rex_email_addr, t)
-                        if not (m1 and m2):
-                            continue
-
-                        if m1.group(1) == m2.group(1):
-                            return True
-
-                return False
-                ## eoim: End of Internal Method
-
-        if not verify_tags_sender(od):
-            info(f"Sender [{ self.sender }] hasn't signed off on the patch!")
-            warn(f"Sender [{ self.sender }] hasn't signed off on the patch!")
-
-        for tag in od:
-            if not od[tag]:
-                continue
-
-            # check Fixes: tag
-            if tag == 'Fixes':
-                verify_fixes_tags(od[tag], od['Cc'])
-
-            # check Co-developed-by: has a corresponding SOB:
-            if tag == cdb:
-                for c in od[cdb]:
-                    if c not in od['Signed-off-by']:
-                        warn(f"Co-developed-by {c} hasn't signed off on the patch!")
-
-
     def format_tags(self, f):
         """
         @f: Write into this file stream
@@ -1394,7 +1333,7 @@ f"""Class patch:
         self.massage_author()
         self.verify_subject()
         self.verify_commit_message()
-        self.verify_tags()
+        verify_tags(self.od, self.sender)
         self.verify_diff()
 
     def format_patch(self):
@@ -1661,8 +1600,62 @@ def verify_fixes_tags(fixes_lst, cc_lst):
 
 #    sys.exit(0)
 
-###
+# Return true if sender has SOBed the patch. False otherwise.
+def verify_tags_sender(od, _sender):
+    rex_remove_email_addr = re.compile(r'(.*)\W\<.*$', re.I)
+    rex_email_addr = re.compile(r'([a-z._]+@[a-z._]+)>?', re.I)
 
+    for tag in od:
+        if tag != "Signed-off-by":
+            continue
+
+        # Sender name might be in "" due to a middle initial
+        sender = re.sub(r'"', "", _sender)
+
+        for t in od['Signed-off-by']:
+            if sender == t:
+                return True
+
+            # see if the names match, i.e., using different email addresses
+            sender_name = re.sub(rex_remove_email_addr, r'\1', sender)
+            sob_name    = re.sub(rex_remove_email_addr, r'\1', t)
+
+            if sender_name == sob_name:
+                return True
+
+            # otherwise, see if the email addresses match
+            m1 = re.search(rex_email_addr, sender)
+            m2 = re.search(rex_email_addr, t)
+            if not (m1 and m2):
+                continue
+
+            if m1.group(1) == m2.group(1):
+                return True
+
+    return False
+
+def verify_tags(od, _sender):
+    dbg("Verifying tags...")
+
+    if not verify_tags_sender(od, _sender):
+        info(f"Sender [{ _sender }] hasn't signed off on the patch!")
+        warn(f"Sender [{ _sender }] hasn't signed off on the patch!")
+
+    for tag in od:
+        if not od[tag]:
+            continue
+
+        # check Fixes: tag
+        if tag == 'Fixes':
+            verify_fixes_tags(od[tag], od['Cc'])
+
+        # check Co-developed-by: has a corresponding SOB:
+        if tag == cdb:
+            for c in od[cdb]:
+                if c not in od['Signed-off-by']:
+                    warn(f"Co-developed-by {c} hasn't signed off on the patch!")
+
+###
 
 ## main
 #
