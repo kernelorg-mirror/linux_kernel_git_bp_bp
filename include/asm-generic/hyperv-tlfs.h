@@ -223,6 +223,7 @@ enum HV_GENERIC_SET_FORMAT {
  * The Hyper-V TimeRefCount register and the TSC
  * page provide a guest VM clock with 100ns tick rate
  */
+#define HV_STATUS_TIME_OUT                      120
 #define HV_CLOCK_HZ (NSEC_PER_SEC/100)
 
 /* Define the number of synthetic interrupt sources. */
