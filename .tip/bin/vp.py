@@ -198,42 +198,44 @@ dc = None
 # my words
 dc_words = [ "3rd", "accessor", "ACPI", "AER", "allocator", "AMD", "AMD64",
          # that's some stupid dictionary
-         "amongst", "AMX", "APEI", "APIC", "arm64", "ASID", "asm",
+         "amongst", "AMX", "APEI", "arm64", "ASID", "asm", "AutoIBRS",
          "BDA", "binutils", "bool", "breakpoint", "brk", "BTF", "btree",
          "C1E", "cacheline", "callee", "CET", "CFI", "checkable", "chronomancy", "CLAC", "clocksource", "CMCI",
          "cmdline", "CMOV", "CMOS",
-         "CMPXCHG", "Coccinelle", "codename", "CPER", "CPPC", "CPUID", "CRIU", "cryptographic", "Cyrix",
-         "DCT", "debugfs", "devicetree",
-         "DF", "distro", "DMA", "dmesg", "DOSEMU", "DPL",
+         "CMPXCHG", "Coccinelle", "codename", "CPER", "CPPC", "CPUID", "CRIU", "cryptographic",
+         "CXL", "Cyrix",
+         "DCT", "debugfs", "decompressor", "devicetree",
+         "DF", "DMA", "dmesg", "DOSEMU", "DPL",
          "e820", "EAX", "EBDA", "ECC", "EDAC", "EFER", "EHCI", "enablement", "enum",
-         "ENDBR", "ENQCMD", "EPT", "ERMS", "extern", "FADT", "filesystem", 
-         "fixup", "gcc", "GCM", "GHES", "goto", "GSBASE", "GUID",
-         "HBM", "HEST", "hotplug", "hugepage", "Hygon",
+         "ENDBR", "ENQCMD", "EPT", "ERMS", "extern", "FADT", "filesystem",
+         "fixup", "gcc", "GCM", "GCOV", "GHES", "goto", "GSBASE", "GUID",
+         "HEST", "hotplug", "hugepage", "Hygon",
          "HyperV", "HugeTLB", "HV", "hwpoison",
-         "i915", "I/O", "IA32", "IBPB", "IBS", "ifdeffery", "IMA", "immediates", "init",
-         "INT3", "interposer", "IRET", "IOMMU", "IRQ", "ISR", "Jcc", 
+         "i915", "I/O", "iff", "IOIO", "IA32", "IBPB", "IBS", "ifdeffery", "IMA",
+         "immediates", "init",
+         "INT3", "interposer", "IOMMU", "IOW", "IRQ", "ISR", "Jcc",
          "kallsyms", "Kbuild", "Kconfig", "kdump", "kexec", "kmemleak", "kobject", "kPTI",
-         "LFENCE", "linux", "livepatch", "LKGS", "LLCC", "lookups", "LSB", "lvalue", "LVT", "MADT",
+         "LFENCE", "linux", "livepatch", "LJMP", "LKGS", "LLCC", "lookups", "LSB", "lvalue", "LVT", "MADT",
          "madvise", "maintainership", "Makefile",
-         "MCE", "MDS", "memfd", "mitigations", "MKTME", "MMIO", "MMU", "ModRM", "MWAIT",
-         "NIST", "NOHZ", "northbridge", "NUMA", "NX",
-         "objtool", "OEM", "ok", "oneliner", "onlined", "ORL", "OVMF", "pahole", "paravisor",
+         "MCE", "MDS", "memfd", "mitigations", "MKTME", "MMIO", "MMU", "ModRM", "mutex", "MWAIT",
+         "namespace", "NIST", "NOHZ", "northbridge", "NUMA", "NX",
+         "objtool", "OEM", "offlist", "ok", "oneliner", "onlined", "ORL", "OSPM", "OVMF", "pahole", "paravisor",
          "passthrough", "pdf", "percpu",
          "perf", "PKRU", "PPIN", "preemptible",
          "prepend", # derived from append, not in the dictionaries
-         "prefetch", "preprocessor", "printk", "pthread",
+         "prefetch", "preprocessor", "printk", "PSE", "pstore", "pthread",
          "PV", "PVALIDATE", "QEMU",
          "RAS", "ratelimit", "refcount", "resctrl", "repurposing", "RCU", "RDT", "RDTSC", "RET",
          "rFLAGS", "RNG", "ROP", "RSB", "RSTORSSP", "runtime", "Ryzen",
-         "s390", "SAVEPREVSSP", "scalable", "seccomp", "selftest", "SETcc",
-         "SGX", "SHSTK", "sideband", "Skylake", "SLS", "Smatch", "SMBA", "SMN", "SoC", "SPDX",
+         "s390", "SAVEPREVSSP", "scalable", "seccomp", "selftest", "SETcc", "severities",
+         "SGX", "SHSTK", "sideband", "Skylake", "SLS", "Smatch", "SMBA", "SMN", "SoC", "softlockup", "SPDX",
          "spinlock", "SRBDS",
          "STAC", "STLF", "stringify", "struct", "SWAPGS", "swiotlb",
          "symtab", "Synopsys", "SYSENTER", "sysfs", "TAA", "TCC", "TDCALL", "TDGETVEINFO",
          "TDVMCALL", "tl;dr", "tmpfs", "TODO",
-         "TPM", "tracepoint", "TSC", "TZCNT", "UC", "uarch", "udev", "uncore",
-         "unwinder", "userspace", "vCPU", "vDSO", "VERW", "vfork", "VLA", "vTOM",
-         "WBINVD", "workqueue", "WRMSR",
+         "TPM", "TSC", "TZCNT", "UAPI", "UC", "UD2", "uarch", "udev", "uncore",
+         "unmapped", "unwinder", "userspace", "vDSO", "VERW", "vfork", "VLA", "vTOM",
+         "WBINVD", "workqueue",
          "x2APIC", "x32", "XCR0", "Xeon", "Xilinx", "xmm", "XSS" ]
 
 dc_non_words = [ "E820", "X86" ]
@@ -250,36 +252,37 @@ known_vars = [ 'alignof', '__BOOT_DS', 'boot_cpu_data', 'bzImage', 'clearcpuid',
 regexes_pats = [ r'^(32|64)-?bit$',
             r'^U?ABI$', r'^AES-GCM$',
             r'^all(mod|yes)config$',
-            r'^AP[IMU]s?$', r'^[kK]?ASLR$',
-            r'^AVX(512)?(-FP16)?$', r'backends?$',
-            r'BIOS(e[sn])?', r'^bit(field|mask)$', r'[Bb]oolean$', r'boot(able|loader|up)', r'boot_params([\.\w_]+)?$',
+            r'^AP([IMU])?s?$', r'^APICs?$', r'^[kK]?ASLR$',
+            r'^AVX(512)?(-FP16)?$', r'backends?$', r'^backport(ed)?$',
+            r'BIOS(e[sn])?', r'^bit(field|mask)s?$', r'[Bb]oolean$', r'boot(able|loader|up)',
+            r'boot_params([\.\w_]+)?$',
             r'BS[FPS]$', r'^B[HT]B$',
             r'^C[1-6]$', r'^C[BS]M$', r'^CMP(XCHG)?$',
             r'^configs?$', r'^const(ify)?$',
             r'^CPU(\d+|s)?$', r'^cpuinfo(_x86)?$', r'^CR[0-4]$',
-            r'^(en|de)crypt(ed|s)$', r'^DIMMs?$',
-            r'^DDR([1-5])?$', r'default_(attrs|groups)', r'^D[oO]S$',
-            r'^S?DRAM$',
+            r'^(en|de)crypt(ed|s)$', r'^dereferenc(e|ing)$', r'^DIMMs?$',
+            r'^DDR([1-5])?$', r'default_(attrs|groups)', r'distros?$', r'^D[oO]S$',
+            r'^S?DRAM$', r'(?i)[dq]word$',
             r'^[Ee].g.$', r'^[eE]?IBRS$', r'^E?VEX$',
             r'^F[PR]U$', r'^[pf]trace$',
             r'^GD[BT]$', r'^GHC(B|I)$', r'g?libc$', r'^GPL$', r'^GP[RU]s?$',
-            r'^hypercalls?$', r'^HL[ET]$', r'^i38[67]$',
+            r'^hypercalls?$', r'^HBM[2-3]?$', r'^HL[ET]$', r'^i38[67]$',
             r'^Icelake(-D)?$', r'I[BDS]T', r'^INCSSPQ?$', r'init(ializer|rd|ramfs)?',
             r'^(in|off)lin(ing|e[ds])$', r'^[Ii]nvalidations?$', r'^INVLPGB?$', r'^ioctls?$', r'^IPIs?$',
-            r'(?i)^jmp$', r'^(KA|UB)SAN$', r'(?i)^kaslr$', r'^(k[cm]|vm)alloc$',
+            r'(?i)^jmp$', r'^(K[AC]|UB)SAN$', r'(?i)^kaslr$', r'^(k[cm]|vm)alloc$',
             r'^[ku]probes?$', r'(?i)kvm$', r'^L[0-3]$', r'^LL(C|VM)$',
             r'^(fix|iore|m)maps?$',
             r'S?MCA$', r'^[Mm]em(block|cpy|move|remap|set|type)$', r'^memslots?$',
             r'^microarchitectur(al|e)$', r'^mispredict(ed)?$', r'^mmap(ping)?$',
             r'^mod(post|probe)$',
-            r'MOV([SB]|DIR64B)?', r'^MSRs?$', r'^MTRRs?$', r'^[NS]MI$', r'^NOPs?$',
+            r'MOV([SB]|DIR64B)?', r'^MSRs?$', r'^MTRRs?$', r'^[NS]MIs?$', r'^NOPs?$',
             r'^param(s)?$',
             r'^([Pp]ara)?virt(ualiz(ed|ing|ation))?$',
             # embedded modifier which goes at the beginning of the regex
-            r'(?i)^pasid$', r'^PCI[De]?$', r'^per-(cpu|CPU)$', r'(?i)^P(TE|[GM]D)s?$', r'^PFNs?$', 
+            r'(?i)^pasid$', r'^PCI[De]?$', r'^per-(cpu|CPU)$', r'(?i)^P(TE|[GM]D)s?$', r'^PFNs?$',
             r'PS[CP]', r'^P[MU]D$',
             r'^Q[oO]S$',
-            r'RD(MSR|RAND|SEED)$', r'^reloc(ation)?s?$', r'[Rr]etpolines?$',
+            r'RD(MSR|RAND|SEED)$', r'^reloc(ation)?s?$', r'^[IL]RET$', r'[Rr]etpolines?$',
             r'^RMIDs?$', r'^RMP(ADJUST|READ|UPDATE)?$', r'^RT[CM]$',
             r'^S[DM]M$',
             r'sev_(features|status)', r'^SEV(-(ES|SNP))?$', r'(?i)^SHA(1|256|512|384)$',
@@ -287,12 +290,15 @@ regexes_pats = [ r'^(32|64)-?bit$',
             r'^SM[ET]$', r'^S[MNS]P$',
             r'^SM[AE]P$', r'^S[oO]Cs?$', r'^[Ss]pectre(_v2)*$', r'SRA[ST]$', r'^steppings?$', r'^STI(BP)?$',
             r'^str(lcat|[lns]cpy|tab)$', r'^SV[AM]$',
-            r'T[DS]X', r'^TLB(SYNC)?$', r'^TOM2?$', r'^u(16|32|64)$',
+            r'T[DS]X', r'^TLB(SYNC)?$', r'^TOM2?$', r'^tracepoints?$',
+            r'^u(16|32|64)$',
             r'^U?EFI$', r'^UM[CL]s?$', r'^unmap(ping)?$',
-            r'(?i)^un(cache(e?able|d)|correctable|initialized|map|mount|trusted)$', r'^vmlinu[zx]$',
+            r'(?i)^un(cache(e?able|d)|correctable|initialized|map|mount|trusted)$',
+            r'^vCPUs?$',
+            r'^vmlinu[zx]$',
             r'^v?syscalls?$', r'^VMAs?$', r'^VMS?A$', r'^VMs?$', r'^VMC[BS]$', r'^VMG?E(xit|XIT)$', r'^VM[MX]?$',
             r'^VM(CALL|ENTER|LAUNCH|RESUME|RUN|ware)$', r'^VMPCKs?$',
-            r'^VMPL([0-3])?$', r'^[dq]words?$', r'^WRU?SS$',
+            r'^VMPL([0-3])?$', r'^[dq]words?$', r'^WRMSR(NS)?$', r'^WRU?SS$',
             r'^x86(-(32|64))?$', r'^(Xen(PV)?|XENPV)$', r'^xfeatures?$', r'^XSAVE[CS]?$', r'^[CX]STATE$',
             r'^[Zz]en[1-4]$' ]
 
@@ -302,7 +308,7 @@ def load_spellchecker():
 rex_commit_ref, rex_constant, rex_debug_regs, rex_decimal, rex_errval, rex_fnames, rex_gpr, rex_hex, rex_hyphenated, \
 rex_kcmdline, rex_kdoc_arg, rex_kdoc_cmt, rex_misc_num, rex_non_alpha, \
 rex_opts, rex_paths, rex_reg_field, rex_regs, rex_sections, rex_sha1, \
-rex_struct_mem, rex_units, rex_url, rex_version, rex_word_bla, \
+rex_struct_mem, rex_time_units, rex_units, rex_url, rex_version, rex_word_bla, \
 rex_word_split, rex_x86_exc
 
     dc = enchant.Dict("en_US")
@@ -331,7 +337,7 @@ rex_word_split, rex_x86_exc
     rex_amd_fam     = re.compile(r'^[Ff]?1[0-9a-f]h$')
     rex_array_elem  = re.compile(r'\w+\[[0-9]+(:[0-9]+)?\]\W?$')
     rex_brackets    = re.compile(r'^.*[()\[\]]+.*$')
-    rex_c_keywords  = re.compile(r'#(define|ifdef|include)')
+    rex_c_keywords  = re.compile(r'(#(define|ifdef|include)|typedef)')
     rex_c_macro     = re.compile(r'^[A-Z0-9_]+$')
     rex_comment     = re.compile(r'^\+\s+\*\s+.*$', re.I)
     rex_comment_end = re.compile(r'^\+\s+\*\/')
@@ -349,11 +355,12 @@ rex_word_split, rex_x86_exc
     # use word boundary \b which is zero-width assertion
     rex_fnames      = re.compile(r'\b[A-Za-z0-9_-]+\.(?:c|h|S|config|rst)\b')
 
-    rex_gpr         = re.compile(r"""([re]?[abcd]x|     # the first 4
+    rex_gpr         = re.compile(r"""%([re]?[abcd][lx]| # the first 4
                                        r([89]|1[0-5])|  # the extended ones
                                        [re][ds]i|       # the other 2
                                        [re][bs]p)       # the last 2
-                                        """, re.I | re.X | re.VERBOSE)
+                                        """,
+                                        re.I | re.X | re.VERBOSE)
 
     # hex digits: 0x... or ...Hh
     rex_hex         = re.compile(r'(0x[0-9A-Fa-f]+|[0-9A-Fa-f]+[Hh])')
@@ -378,14 +385,16 @@ rex_word_split, rex_x86_exc
     rex_struct_mem  = re.compile(r'\w+->\w+')
     # a hex with a following commit name
     rex_sha1        = re.compile(r'[a-f0-9]{12,40}\s?\(?"\w+"\)?', re.I)
+    rex_time_units  = re.compile(r'[0-9.]+[mu]s')
 
     # , for digit group (thousands) separation
-    rex_units       = re.compile(r'^(0x[0-9a-f]+|[0-9,]+(([GMKP](i?b)|bytes)?|ms))$', re.I)
+    # (i?b)? - accept 2M, 32K etc with a missing 'Bb'
+    rex_units       = re.compile(r'^(0x[0-9a-f]+|[0-9,]+([GMKP](i?b)?|bytes)?)$', re.I)
     rex_url         = re.compile(r'https?://[a-z0-9:/.-]+')
     rex_version     = re.compile(r'v\d+$', re.I)
     rex_word_bla    = re.compile(r'non-(\w+)')
     rex_word_split  = re.compile(r'(\w+)\/(\w+)')
-    rex_x86_exc   = re.compile(r'^#(CP|DB|GP|MC|NM|N?PF|VC)$')
+    rex_x86_exc   = re.compile(r'^#(CP|D[BE]|GP|MC|NM|N?PF|V[CE])$')
 
     # precompile all regexes
     for pat in regexes_pats:
@@ -572,8 +581,9 @@ def spellcheck(s, where, flags):
             # remove punctuation, etc
             w = w.strip('`\',*+:;\!|<>"=^')
 
-            # remove prepended chars
-            w = w.lstrip('%')
+            # remove prepended chars: well, you can't do that here because that breaks the GPR
+            # matching below.
+            # w = w.lstrip('%')
 
             w = strip_brackets(w)
 
@@ -657,6 +667,13 @@ def spellcheck(s, where, flags):
             if m:
                 dbg(f"Skip hex number/unit [{w}], match [{ m.group(0) }]")
                 continue
+
+            # number: time units...
+            m = rex_time_units.match(w)
+            if m:
+                dbg(f"Skip time unit [{w}], match [{ m.group(0) }]")
+                continue
+
 
             # number: constants...
             m = rex_constant.match(w)
@@ -802,6 +819,7 @@ class Patch:
         self.od = collections.OrderedDict()
         # build in the proper order
         self.od['Fixes'] = []
+        self.od['Closes'] = []
         self.od['Reported-by'] = []
         self.od['Suggested-by'] = []
         self.od['Originally-by'] = []
@@ -990,7 +1008,10 @@ f"""Class patch:
                 if new_from != self.sender:
                     self.author = new_from
                     info(f"Found new author: [{new_from}]")
-                    plines.remove(line)
+
+                # remove the line even if the new author is the same as the sender so that
+                # the spellchecker doesn't go through it
+                plines.remove(line)
 
             # Scan for a potential new subject
             m = rex_subj.match(line)
@@ -1392,8 +1413,15 @@ f"""Class patch:
         info(" | END OF PATCH CONTENTS:")
 
         # flush patch out here
-
         f_out.close()
+
+        info("Symlinking... ")
+        try:
+            os.unlink(("%s/current_patch" % (tmp_dir, )))
+        except FileNotFoundError:
+            pass
+
+        os.symlink(final, ("%s/current_patch" % (tmp_dir, )))
 
 ### End of class Patch
 
@@ -1434,27 +1462,12 @@ def verify_binutils_version(f, h):
 
     if not opcodes: return
 
-    rex_binutils = re.compile(r'^.*binutils\s.*[0-2]\.[0-9]+.*', re.I)
-    rex_cm_start = re.compile(r'^[\s\t\+]+/\*\s+(.*)$')
-    comment_string = ""
-    in_comment = False
+    rex_binutils = re.compile(r'^.*(binutils\s.*[0-2]\.[0-9]+).*', re.I)
 
-    # Fish out the comment first - binutils version spec could be spread over multiple lines
-    for l in lines:
-        if not in_comment:
-            m = rex_cm_start.match(l)
-            if m:
-                in_comment = True
-                comment_string += m.group(1)
-        else:
-            if rex_comment_end.match(l):
-                break
-
-            comment_string += re.sub(r'[+*\n]', '', l)
-
-    dbg(f"Matching comment: [{ comment_string }]")
-    m = rex_binutils.match(comment_string)
+    # expand into a single big string and remove newlines
+    m = rex_binutils.match( re.sub(r'\n', '', ''.join(lines)))
     if m:
+        dbg(f"Matching comment: [{ m.group(1) }]")
         return
 
     for l in lines:
