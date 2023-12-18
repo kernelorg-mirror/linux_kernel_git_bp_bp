@@ -6,6 +6,8 @@
 #include <linux/uuid.h>
 #include <linux/cper.h>
 
+#include <uapi/asm/mce.h>
+
 #ifdef CONFIG_DEBUG_FS
 int ras_userspace_consumers(void);
 void ras_debugfs_init(void);
@@ -25,6 +27,7 @@ void log_non_standard_event(const guid_t *sec_type,
 			    const guid_t *fru_id, const char *fru_text,
 			    const u8 sev, const u8 *err, const u32 len);
 void log_arm_hw_error(struct cper_sec_proc_arm *err);
+
 #else
 static inline void
 log_non_standard_event(const guid_t *sec_type,
@@ -34,5 +37,13 @@ log_non_standard_event(const guid_t *sec_type,
 static inline void
 log_arm_hw_error(struct cper_sec_proc_arm *err) { return; }
 #endif
+
+#if IS_ENABLED(CONFIG_AMD_ATL)
+void amd_atl_register_decoder(unsigned long (*f)(struct mce *));
+void amd_atl_unregister_decoder(void);
+unsigned long amd_convert_umc_mca_addr_to_sys_addr(struct mce *m);
+#else
+static inline unsigned long amd_convert_umc_mca_addr_to_sys_addr(struct mce *m) { return -EINVAL; }
+#endif /* CONFIG_AMD_ATL */
 
 #endif /* __RAS_H__ */
