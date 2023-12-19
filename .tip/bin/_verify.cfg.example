@@ -1,0 +1,8 @@
+# Example config file for vp.py. Fill out the values for your system
+
+[main]
+temp: /tmp
+# The email address in the Signed-off-by: line of your patches
+sob: Random J Developer <random@developer.example.org>
+# kernel repository to use
+repo: /path/to/git/repo
