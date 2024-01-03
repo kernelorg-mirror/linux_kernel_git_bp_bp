@@ -343,6 +343,15 @@ extern int mce_threshold_remove_device(unsigned int cpu);
 
 void mce_amd_feature_init(struct cpuinfo_x86 *c);
 enum smca_bank_types smca_get_bank_type(unsigned int cpu, unsigned int bank);
+
+#ifdef CONFIG_AMD_ATL
+void amd_atl_register_decoder(unsigned long (*f)(struct mce *));
+void amd_atl_unregister_decoder(void);
+unsigned long amd_convert_umc_mca_addr_to_sys_addr(struct mce *m);
+#else
+static inline unsigned long amd_convert_umc_mca_addr_to_sys_addr(struct mce *m) { return -EINVAL; }
+#endif /* CONFIG_AMD_ATL */
+
 #else
 
 static inline int mce_threshold_create_device(unsigned int cpu)		{ return 0; };
