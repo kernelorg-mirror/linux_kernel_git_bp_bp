@@ -217,46 +217,11 @@ static int skip_nops(u8 *buf, int offset, int len)
 }
 
 /*
- * Optimize a sequence of NOPs, possibly preceded by an unconditional jump
- * to the end of the NOP sequence into a single NOP.
- */
-static bool __init_or_module
-__optimize_nops(const u8 * const instr, u8 *buf, size_t len, struct insn *insn, int *next, int *prev, int *target)
-{
-	int i = *next - insn->length;
-
-	switch (insn->opcode.bytes[0]) {
-	case JMP8_INSN_OPCODE:
-	case JMP32_INSN_OPCODE:
-		*prev = i;
-		*target = *next + insn->immediate.value;
-		return false;
-	}
-
-	if (insn_is_nop(insn)) {
-		int nop = i;
-
-		*next = skip_nops(buf, *next, len);
-		if (*target && *next == *target)
-			nop = *prev;
-
-		add_nop(buf + nop, *next - nop);
-		DUMP_BYTES(ALT, buf, len, "%px: [%d:%d) optimized NOPs: ", instr, nop, *next);
-		return true;
-	}
-
-	*target = 0;
-	return false;
-}
-
-/*
  * "noinline" to cause control flow change and thus invalidate I$ and
  * cause refetch after modification.
  */
 static void __init_or_module noinline optimize_nops(const u8 * const instr, u8 *buf, size_t len)
 {
-	int prev, target = 0;
-
 	for (int next, i = 0; i < len; i = next) {
 		struct insn insn;
 
@@ -265,7 +230,14 @@ static void __init_or_module noinline optimize_nops(const u8 * const instr, u8 *
 
 		next = i + insn.length;
 
-		__optimize_nops(instr, buf, len, &insn, &next, &prev, &target);
+		if (insn_is_nop(&insn)) {
+			int nop = i;
+
+			next = skip_nops(buf, next, len);
+
+			add_nop(buf + nop, next - nop);
+			DUMP_BYTES(ALT, buf, len, "%px: [%d:%d) optimized NOPs: ", instr, nop, next);
+		}
 	}
 }
 
@@ -342,8 +314,6 @@ bool need_reloc(unsigned long offset, u8 *src, size_t src_len)
 static void __init_or_module noinline
 apply_relocation(const u8 * const instr, u8 *buf, size_t len, u8 *src, size_t src_len)
 {
-	int prev, target = 0;
-
 	for (int next, i = 0; i < len; i = next) {
 		struct insn insn;
 
@@ -351,9 +321,6 @@ apply_relocation(const u8 * const instr, u8 *buf, size_t len, u8 *src, size_t sr
 			return;
 
 		next = i + insn.length;
-
-		if (__optimize_nops(instr, buf, len, &insn, &next, &prev, &target))
-			continue;
 
 		switch (insn.opcode.bytes[0]) {
 		case 0x0f:
@@ -533,7 +500,8 @@ void __init_or_module noinline apply_alternatives(struct alt_instr *start,
 		for (; insn_buff_sz < a->instrlen; insn_buff_sz++)
 			insn_buff[insn_buff_sz] = 0x90;
 
-		apply_relocation(instr, insn_buff, a->instrlen, replacement, a->replacementlen);
+		apply_relocation(instr, insn_buff, a->instrlen, replacement, insn_buff_sz);
+		optimize_nops(instr, insn_buff, insn_buff_sz);
 
 		DUMP_BYTES(ALT, instr, a->instrlen, "%px:   old_insn: ", instr);
 		DUMP_BYTES(ALT, replacement, a->replacementlen, "%px:   rpl_insn: ", replacement);
