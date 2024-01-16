@@ -233,6 +233,10 @@ static void __init_or_module noinline optimize_nops(const u8 * const instr, u8 *
 		if (insn_is_nop(&insn)) {
 			int nop = i;
 
+			/* Has the NOP already been optimized? */
+			if (i + insn.length == len)
+				return;
+
 			next = skip_nops(buf, next, len);
 
 			add_nop(buf + nop, next - nop);
