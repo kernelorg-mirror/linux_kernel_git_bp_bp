@@ -142,8 +142,9 @@ static unsigned int max_nr_fru;
 static size_t max_rec_len;
 
 /*
- * Protect the local cache and prevent concurrent writes to storage.
- * This is only needed after init once notifier block registration is done.
+ * Protect the local records cache in fru_records and prevent concurrent
+ * writes to storage. This is only needed after init once notifier block
+ * registration is done.
  */
 static DEFINE_MUTEX(fmpm_update_mutex);
 
