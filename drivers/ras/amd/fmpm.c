@@ -275,6 +275,10 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 	fpd.addr_type	= FPD_ADDR_TYPE_MCA_ADDR;
 	fpd.addr	= m->addr;
 
+	/* This is the first entry, so just save it. */
+	if (!rec_has_valid_entries(rec))
+		goto save_fpd;
+
 	/* Ignore already recorded errors. */
 	if (rec_has_fpd(rec, &fpd))
 		goto out_unlock;
@@ -287,6 +291,7 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 	entry	  = fmp->nr_entries;
 	fpd_dest  = &rec->entries[entry];
 
+save_fpd:
 	memcpy(fpd_dest, &fpd, sizeof(struct cper_fru_poison_desc));
 
 	fmp->nr_entries		 = entry + 1;
@@ -325,8 +330,8 @@ static int fru_mem_poison_handler(struct notifier_block *nb, unsigned long val, 
 	retire_dram_row(m->addr, m->ipid, m->extcpu);
 
 	/*
-	 * This should not happen on real errors. But it could happen from
-	 * software error injection, etc.
+	 * An invalid FRU ID should not happen on real errors. But it
+	 * could happen from software error injection, etc.
 	 */
 	rec = get_fru_record(m->ppin);
 	if (!rec)
