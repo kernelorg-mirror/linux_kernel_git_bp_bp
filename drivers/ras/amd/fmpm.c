@@ -72,7 +72,7 @@
 /* FRU ID Types */
 #define FMP_ID_TYPE_X86_PPIN		0
 
-/* FRU Memory Poison Section, UEFI vX.Y sec N.X.Z */
+/* FRU Memory Poison Section */
 struct cper_sec_fru_mem_poison {
 	u32 checksum;
 	u64 validation_bits;
@@ -89,7 +89,7 @@ struct cper_sec_fru_mem_poison {
 /* FRU Descriptor Address Types */
 #define FPD_ADDR_TYPE_MCA_ADDR		0
 
-/* Memory Poison Descriptor, UEFI vX.Y sec N.X.Y */
+/* Memory Poison Descriptor */
 struct cper_fru_poison_desc {
 	u64 timestamp;
 	u32 hw_id_type;
