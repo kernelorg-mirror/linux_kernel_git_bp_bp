@@ -221,7 +221,7 @@ static int update_record_on_storage(struct fru_rec *rec)
 	return ret;
 }
 
-static bool has_valid_entries(struct fru_rec *rec)
+static bool rec_has_valid_entries(struct fru_rec *rec)
 {
 	if (!(rec->fmp.validation_bits & FMP_VALID_LIST_ENTRIES))
 		return false;
@@ -286,7 +286,7 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 	fpd.addr	= m->addr;
 
 	/* This is the first entry, so just save it. */
-	if (!has_valid_entries(rec))
+	if (!rec_has_valid_entries(rec))
 		goto save_fpd;
 
 	/* Ignore already recorded errors. */
@@ -397,7 +397,7 @@ static void retire_mem_records(void)
 	for_each_fru(i, rec) {
 		fmp = &rec->fmp;
 
-		if (!has_valid_entries(rec))
+		if (!rec_has_valid_entries(rec))
 			continue;
 
 		cpu = get_cpu_from_fru_id(fmp->fru_id);
