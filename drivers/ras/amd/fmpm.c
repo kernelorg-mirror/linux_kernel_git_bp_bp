@@ -153,11 +153,6 @@ static DEFINE_MUTEX(fmpm_update_mutex);
 #define for_each_fru(i, rec) \
 	for (i = 0; rec = fru_records[i], i < max_nr_fru; i++)
 
-static inline struct cper_sec_fru_mem_poison *get_fmp(struct fru_rec *rec)
-{
-	return &rec->fmp;
-}
-
 static inline struct cper_fru_poison_desc *get_fpd(struct fru_rec *rec, u32 entry)
 {
 	return &rec->entries[entry];
@@ -174,7 +169,7 @@ static struct fru_rec *get_fru_record(u64 fru_id)
 	unsigned int i;
 
 	for_each_fru(i, rec) {
-		if (get_fmp(rec)->fru_id == fru_id)
+		if (rec->fmp.fru_id == fru_id)
 			return rec;
 	}
 
@@ -203,16 +198,15 @@ static u32 do_fmp_checksum(struct cper_sec_fru_mem_poison *fmp, u32 len)
 /* Calculate a new checksum. */
 static u32 get_fmp_checksum(struct fru_rec *rec)
 {
-	struct cper_sec_fru_mem_poison *fmp = get_fmp(rec);
 	u32 len, checksum;
 
 	len = get_fmp_len(rec);
 
 	/* Get the current total. */
-	checksum = do_fmp_checksum(fmp, len);
+	checksum = do_fmp_checksum(&rec->fmp, len);
 
 	/* Subtract the current checksum from total. */
-	checksum -= fmp->checksum;
+	checksum -= rec->fmp.checksum;
 
 	/* Return the compliment value. */
 	return 0 - checksum;
@@ -244,12 +238,12 @@ static void init_fpd(struct cper_fru_poison_desc *fpd,  struct mce *m)
 	fpd->addr	= m->addr;
 }
 
-static bool has_valid_entries(u64 valid_bits)
+static bool has_valid_entries(struct fru_rec *rec)
 {
-	if (!(valid_bits & FMP_VALID_LIST_ENTRIES))
+	if (!(rec->fmp.validation_bits & FMP_VALID_LIST_ENTRIES))
 		return false;
 
-	if (!(valid_bits & FMP_VALID_LIST))
+	if (!(rec->fmp.validation_bits & FMP_VALID_LIST))
 		return false;
 
 	return true;
@@ -282,7 +276,7 @@ static bool is_dup_fpd(struct fru_rec *rec, struct cper_fru_poison_desc *new)
 {
 	unsigned int i;
 
-	for (i = 0; i < get_fmp(rec)->nr_entries; i++) {
+	for (i = 0; i < rec->fmp.nr_entries; i++) {
 		if (same_fpd(get_fpd(rec, i), new)) {
 			pr_debug("Found duplicate record");
 			return true;
@@ -294,7 +288,7 @@ static bool is_dup_fpd(struct fru_rec *rec, struct cper_fru_poison_desc *new)
 
 static void update_fru_record(struct fru_rec *rec, struct mce *m)
 {
-	struct cper_sec_fru_mem_poison *fmp = get_fmp(rec);
+	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
 	struct cper_fru_poison_desc fpd;
 	u32 entry = 0;
 
@@ -303,15 +297,15 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 	init_fpd(&fpd, m);
 
 	/* This is the first entry, so just save it. */
-	if (!has_valid_entries(fmp->validation_bits))
+	if (!has_valid_entries(rec))
 		goto save_fpd;
 
 	/* Ignore already recorded errors. */
 	if (is_dup_fpd(rec, &fpd))
 		goto out_unlock;
 
-	if (fmp->nr_entries >= max_nr_entries) {
-		pr_warn("Exceeded number of entries for FRU 0x%016llx", fmp->fru_id);
+	if (rec->fmp.nr_entries >= max_nr_entries) {
+		pr_warn("Exceeded number of entries for FRU 0x%016llx", rec->fmp.fru_id);
 		goto out_unlock;
 	}
 
@@ -412,9 +406,9 @@ static void retire_mem_records(void)
 	u32 cpu;
 
 	for_each_fru(i, rec) {
-		fmp = get_fmp(rec);
+		fmp = &rec->fmp;
 
-		if (!has_valid_entries(fmp->validation_bits))
+		if (!has_valid_entries(rec))
 			continue;
 
 		cpu = get_cpu_from_fru_id(fmp->fru_id);
@@ -481,7 +475,7 @@ static int save_new_records(void)
 
 static bool is_valid_fmp(struct fru_rec *rec)
 {
-	struct cper_sec_fru_mem_poison *fmp = get_fmp(rec);
+	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
 	u32 len = get_fmp_len(rec);
 
 	if (!fmp)
@@ -602,8 +596,10 @@ out:
 	return ret;
 }
 
-static void set_fmp_fields(struct cper_sec_fru_mem_poison *fmp, unsigned int cpu)
+static void set_fmp_fields(struct fru_rec *rec, unsigned int cpu)
 {
+	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
+
 	fmp->fru_arch_type    = FMP_ARCH_TYPE_X86_CPUID_1_EAX;
 	fmp->validation_bits |= FMP_VALID_ARCH_TYPE;
 
@@ -638,7 +634,7 @@ static void init_fmps(void)
 
 	for_each_fru(i, rec) {
 		cpu = get_cpu_for_fru_num(i);
-		set_fmp_fields(get_fmp(rec), cpu);
+		set_fmp_fields(rec, cpu);
 	}
 }
 
