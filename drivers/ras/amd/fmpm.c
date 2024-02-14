@@ -195,11 +195,12 @@ static u32 do_fmp_checksum(struct cper_sec_fru_mem_poison *fmp, u32 len)
 	return checksum;
 }
 
-/* Calculate a new checksum. */
-static u32 get_fmp_checksum(struct fru_rec *rec)
+static int update_record_on_storage(struct fru_rec *rec)
 {
 	u32 len, checksum;
+	int ret;
 
+	/* Calculate a new checksum. */
 	len = get_fmp_len(rec);
 
 	/* Get the current total. */
@@ -208,15 +209,8 @@ static u32 get_fmp_checksum(struct fru_rec *rec)
 	/* Subtract the current checksum from total. */
 	checksum -= rec->fmp.checksum;
 
-	/* Return the compliment value. */
-	return 0 - checksum;
-}
-
-static int update_record_on_storage(struct fru_rec *rec)
-{
-	int ret;
-
-	rec->fmp.checksum = get_fmp_checksum(rec);
+	/* Use the complement value. */
+	rec->fmp.checksum = -checksum;
 
 	pr_debug("Writing to storage");
 
