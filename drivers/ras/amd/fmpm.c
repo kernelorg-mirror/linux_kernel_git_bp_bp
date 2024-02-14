@@ -146,11 +146,6 @@ static DEFINE_MUTEX(fmpm_update_mutex);
 #define for_each_fru(i, rec) \
 	for (i = 0; rec = fru_records[i], i < max_nr_fru; i++)
 
-static inline struct cper_fru_poison_desc *get_fpd(struct fru_rec *rec, u32 entry)
-{
-	return &rec->entries[entry];
-}
-
 static inline u32 get_fmp_len(struct fru_rec *rec)
 {
 	return rec->sec_desc.section_length - sizeof(struct cper_section_descriptor);
@@ -253,7 +248,9 @@ static bool rec_has_fpd(struct fru_rec *rec, struct cper_fru_poison_desc *fpd)
 	unsigned int i;
 
 	for (i = 0; i < rec->fmp.nr_entries; i++) {
-		if (same_fpd(get_fpd(rec, i), fpd)) {
+		struct cper_fru_poison_desc *fpd_i = &rec->entries[i];
+
+		if (same_fpd(fpd_i, fpd)) {
 			pr_debug("Found duplicate record");
 			return true;
 		}
@@ -265,7 +262,7 @@ static bool rec_has_fpd(struct fru_rec *rec, struct cper_fru_poison_desc *fpd)
 static void update_fru_record(struct fru_rec *rec, struct mce *m)
 {
 	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
-	struct cper_fru_poison_desc fpd;
+	struct cper_fru_poison_desc fpd, *fpd_dest;
 	u32 entry = 0;
 
 	mutex_lock(&fmpm_update_mutex);
@@ -287,9 +284,10 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 		goto out_unlock;
 	}
 
-	entry = fmp->nr_entries;
+	entry	  = fmp->nr_entries;
+	fpd_dest  = &rec->entries[entry];
 
-	memcpy(get_fpd(rec, entry), &fpd, sizeof(struct cper_fru_poison_desc));
+	memcpy(fpd_dest, &fpd, sizeof(struct cper_fru_poison_desc));
 
 	fmp->nr_entries		 = entry + 1;
 	fmp->validation_bits	|= FMP_VALID_LIST_ENTRIES;
@@ -359,11 +357,10 @@ static u32 get_cpu_from_fru_id(u64 fru_id)
 
 static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries, u32 cpu)
 {
-	struct cper_fru_poison_desc *fpd;
 	unsigned int i;
 
 	for (i = 0; i < nr_entries; i++) {
-		fpd = get_fpd(rec, i);
+		struct cper_fru_poison_desc *fpd = &rec->entries[i];
 
 		if (fpd->hw_id_type != FPD_HW_ID_TYPE_MCA_IPID)
 			continue;
