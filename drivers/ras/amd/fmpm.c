@@ -447,7 +447,7 @@ static int save_new_records(void)
 	return ret;
 }
 
-static bool is_valid_fmp(struct fru_rec *rec)
+static bool fmp_is_valid(struct fru_rec *rec)
 {
 	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
 	u32 len = get_fmp_len(rec);
@@ -486,19 +486,12 @@ static bool is_valid_fmp(struct fru_rec *rec)
 	return true;
 }
 
-static void restore_record(struct fru_rec *new, struct fru_rec *old)
-{
-	/* Records larger than max_rec_len were skipped earlier. */
-	size_t len = min(max_rec_len, old->hdr.record_length);
-
-	memcpy(new, old, len);
-}
-
 static bool valid_record(struct fru_rec *old)
 {
 	struct fru_rec *new;
+	size_t len;
 
-	if (!is_valid_fmp(old)) {
+	if (!fmp_is_valid(old)) {
 		pr_debug("Ignoring invalid record");
 		return false;
 	}
@@ -509,8 +502,11 @@ static bool valid_record(struct fru_rec *old)
 		return false;
 	}
 
-	/* What if ERST has duplicate FRU entries? */
-	restore_record(new, old);
+	/* Records larger than max_rec_len were skipped earlier. */
+	len = min(max_rec_len, old->hdr.record_length);
+
+	/* Restore the record */
+	memcpy(new, old, len);
 
 	return true;
 }
@@ -588,36 +584,35 @@ static void set_fmp_fields(struct fru_rec *rec, unsigned int cpu)
 	fmp->validation_bits |= FMP_VALID_ID;
 }
 
-static unsigned int get_cpu_for_fru_num(unsigned int i)
-{
-	unsigned int cpu = 0;
-
-	/* Should there be more robust error handling if none found? */
-	for_each_online_cpu(cpu) {
-		if (topology_physical_package_id(cpu) == i)
-			return cpu;
-	}
-
-	return cpu;
-}
-
 static void init_fmps(void)
 {
 	struct fru_rec *rec;
 	unsigned int i, cpu;
 
+	cpus_read_lock();
 	for_each_fru(i, rec) {
-		cpu = get_cpu_for_fru_num(i);
-		set_fmp_fields(rec, cpu);
+		int fru_cpu = -1;
+
+		for_each_online_cpu(cpu) {
+			if (topology_physical_package_id(cpu) == i) {
+				fru_cpu = i;
+				break;
+			}
+		}
+
+		if (fru_cpu < 0)
+			continue;
+
+		set_fmp_fields(rec, fru_cpu);
 	}
+	cpus_read_unlock();
 }
 
 static int get_system_info(void)
 {
-	u8 model = boot_cpu_data.x86_model;
-
 	/* Only load on MI300A systems for now. */
-	if (!(model >= 0x90 && model <= 0x9f))
+	if (!(boot_cpu_data.x86_model >= 0x90 &&
+	      boot_cpu_data.x86_model <= 0x9f))
 		return -ENODEV;
 
 	if (!cpu_feature_enabled(X86_FEATURE_AMD_PPIN)) {
@@ -641,7 +636,7 @@ static int get_system_info(void)
 	return 0;
 }
 
-static void deallocate_records(void)
+static void free_records(void)
 {
 	struct fru_rec *rec;
 	int i;
@@ -728,7 +723,7 @@ static int __init fru_mem_poison_init(void)
 	return 0;
 
 out_free:
-	deallocate_records();
+	free_records();
 out:
 	return ret;
 }
@@ -736,7 +731,7 @@ out:
 static void __exit fru_mem_poison_exit(void)
 {
 	mce_unregister_decode_chain(&fru_mem_poison_nb);
-	deallocate_records();
+	free_records();
 }
 
 module_init(fru_mem_poison_init);
