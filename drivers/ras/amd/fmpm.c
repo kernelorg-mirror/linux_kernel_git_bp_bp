@@ -53,8 +53,6 @@
 #include <asm/cpu_device_id.h>
 #include <asm/mce.h>
 
-#pragma pack(1)
-
 /* Validation Bits */
 #define FMP_VALID_ARCH_TYPE		BIT_ULL(0)
 #define FMP_VALID_ARCH			BIT_ULL(1)
@@ -78,7 +76,7 @@ struct cper_sec_fru_mem_poison {
 	u32 fru_id_type;
 	u64 fru_id;
 	u32 nr_entries;
-};
+} __packed;
 
 /* FRU Descriptor ID Types */
 #define FPD_HW_ID_TYPE_MCA_IPID		0
@@ -93,7 +91,7 @@ struct cper_fru_poison_desc {
 	u64 hw_id;
 	u32 addr_type;
 	u64 addr;
-};
+} __packed;
 
 /* Collection of headers and sections for easy pointer use. */
 struct fru_rec {
@@ -101,10 +99,7 @@ struct fru_rec {
 	struct cper_section_descriptor	sec_desc;
 	struct cper_sec_fru_mem_poison	fmp;
 	struct cper_fru_poison_desc	entries[];
-};
-
-/* Reset to default packing */
-#pragma pack()
+} __packed;
 
 /*
  * Pointers to the complete CPER record of each FRU.
