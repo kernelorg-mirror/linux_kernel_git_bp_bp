@@ -220,7 +220,7 @@ static bool rec_has_valid_entries(struct fru_rec *rec)
 	return true;
 }
 
-static bool same_fpd(struct cper_fru_poison_desc *old, struct cper_fru_poison_desc *new)
+static bool fpds_equal(struct cper_fru_poison_desc *old, struct cper_fru_poison_desc *new)
 {
 	/*
 	 * Ignore timestamp field.
@@ -250,7 +250,7 @@ static bool rec_has_fpd(struct fru_rec *rec, struct cper_fru_poison_desc *fpd)
 	for (i = 0; i < rec->fmp.nr_entries; i++) {
 		struct cper_fru_poison_desc *fpd_i = &rec->entries[i];
 
-		if (same_fpd(fpd_i, fpd)) {
+		if (fpds_equal(fpd_i, fpd)) {
 			pr_debug("Found duplicate record");
 			return true;
 		}
