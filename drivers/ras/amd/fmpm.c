@@ -221,17 +221,6 @@ static int update_record_on_storage(struct fru_rec *rec)
 	return ret;
 }
 
-static void init_fpd(struct cper_fru_poison_desc *fpd,  struct mce *m)
-{
-	memset(fpd, 0, sizeof(struct cper_fru_poison_desc));
-
-	fpd->timestamp	= m->time;
-	fpd->hw_id_type = FPD_HW_ID_TYPE_MCA_IPID;
-	fpd->hw_id	= m->ipid;
-	fpd->addr_type	= FPD_ADDR_TYPE_MCA_ADDR;
-	fpd->addr	= m->addr;
-}
-
 static bool has_valid_entries(struct fru_rec *rec)
 {
 	if (!(rec->fmp.validation_bits & FMP_VALID_LIST_ENTRIES))
@@ -288,7 +277,13 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 
 	mutex_lock(&fmpm_update_mutex);
 
-	init_fpd(&fpd, m);
+	memset(&fpd, 0, sizeof(struct cper_fru_poison_desc));
+
+	fpd.timestamp	= m->time;
+	fpd.hw_id_type = FPD_HW_ID_TYPE_MCA_IPID;
+	fpd.hw_id	= m->ipid;
+	fpd.addr_type	= FPD_ADDR_TYPE_MCA_ADDR;
+	fpd.addr	= m->addr;
 
 	/* This is the first entry, so just save it. */
 	if (!has_valid_entries(rec))
