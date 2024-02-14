@@ -255,12 +255,12 @@ static bool same_fpd(struct cper_fru_poison_desc *old, struct cper_fru_poison_de
 	return true;
 }
 
-static bool is_dup_fpd(struct fru_rec *rec, struct cper_fru_poison_desc *new)
+static bool rec_has_fpd(struct fru_rec *rec, struct cper_fru_poison_desc *fpd)
 {
 	unsigned int i;
 
 	for (i = 0; i < rec->fmp.nr_entries; i++) {
-		if (same_fpd(get_fpd(rec, i), new)) {
+		if (same_fpd(get_fpd(rec, i), fpd)) {
 			pr_debug("Found duplicate record");
 			return true;
 		}
@@ -290,7 +290,7 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 		goto save_fpd;
 
 	/* Ignore already recorded errors. */
-	if (is_dup_fpd(rec, &fpd))
+	if (rec_has_fpd(rec, &fpd))
 		goto out_unlock;
 
 	if (rec->fmp.nr_entries >= max_nr_entries) {
