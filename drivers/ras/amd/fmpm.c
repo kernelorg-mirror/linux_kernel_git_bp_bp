@@ -47,6 +47,7 @@
 
 #include <linux/cper.h>
 #include <linux/ras.h>
+#include <linux/cpu.h>
 
 #include <acpi/apei.h>
 
@@ -347,21 +348,10 @@ static struct notifier_block fru_mem_poison_nb = {
 	.priority	= MCE_PRIO_LOWEST,
 };
 
-static u32 get_cpu_from_fru_id(u64 fru_id)
+static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries)
 {
-	unsigned int cpu = 0;
-
-	/* Should there be more robust error handling if none found? */
-	for_each_online_cpu(cpu) {
-		if (topology_ppin(cpu) == fru_id)
-			break;
-	}
-
-	return cpu;
-}
-
-static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries, u32 cpu)
-{
+	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
+	unsigned int cpu, err_cpu = -1;
 	unsigned int i;
 
 	for (i = 0; i < nr_entries; i++) {
@@ -373,7 +363,16 @@ static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries, u32 cpu)
 		if (fpd->addr_type != FPD_ADDR_TYPE_MCA_ADDR)
 			continue;
 
-		retire_dram_row(fpd->addr, fpd->hw_id, cpu);
+		cpus_read_lock();
+		for_each_online_cpu(cpu) {
+			if (topology_ppin(cpu) == fmp->fru_id) {
+				err_cpu = cpu;
+				break;
+			}
+		}
+		cpus_read_unlock();
+
+		retire_dram_row(fpd->addr, fpd->hw_id, err_cpu);
 	}
 }
 
@@ -382,7 +381,6 @@ static void retire_mem_records(void)
 	struct cper_sec_fru_mem_poison *fmp;
 	struct fru_rec *rec;
 	unsigned int i;
-	u32 cpu;
 
 	for_each_fru(i, rec) {
 		fmp = &rec->fmp;
@@ -390,9 +388,7 @@ static void retire_mem_records(void)
 		if (!rec_has_valid_entries(rec))
 			continue;
 
-		cpu = get_cpu_from_fru_id(fmp->fru_id);
-
-		retire_mem_fmp(rec, fmp->nr_entries, cpu);
+		retire_mem_fmp(rec, fmp->nr_entries);
 	}
 }
 
@@ -438,7 +434,6 @@ static int save_new_records(void)
 	int ret = 0;
 
 	for_each_fru(i, rec) {
-		/* Skip restored records. Should these be fixed up? */
 		if (rec->hdr.record_length)
 			continue;
 
@@ -561,8 +556,6 @@ static int get_saved_records(void)
 
 		len = erst_read_record(record_id, &old->hdr, max_rec_len,
 				       sizeof(struct fru_rec), &CPER_CREATOR_FMP);
-
-		/* Should this be retried if the temporary buffer is too small? */
 		if (len < 0)
 			continue;
 
