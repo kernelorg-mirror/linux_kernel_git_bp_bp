@@ -12,7 +12,7 @@
  *
  * Implementation notes, assumptions, and limitations:
  *
- * - FRU Memory Poison Section and Memory Poison Descriptor definitions are not yet
+ * - FRU memory poison section and memory poison descriptor definitions are not yet
  *   included in the UEFI specification. So they are defined here. Afterwards, they
  *   may be moved to linux/cper.h, if appropriate.
  *
@@ -23,15 +23,12 @@
  *   AMD MI300-based platform(s) assumptions:
  *   - Memory errors are reported through x86 MCA.
  *   - The entire DRAM row containing a memory error should be retired.
- *   - There will be (1) FRU Memory Poison Section per CPER.
- *   - The FRU will be the CPU Package (Processor Socket).
- *   - The default number of Memory Poison Descriptor entries should be (8).
- *   - The Platform will use ACPI ERST for persistent storage.
+ *   - There will be (1) FRU memory poison section per CPER.
+ *   - The FRU will be the CPU package (processor socket).
+ *   - The default number of memory poison descriptor entries should be (8).
+ *   - The platform will use ACPI ERST for persistent storage.
  *   - All FRU records should be saved to persistent storage. Module init will
  *     fail if any FRU record is not successfully written.
- *
- * - Source code will be under 'drivers/ras/amd/' unless and until there is interest
- *   to use this module for other vendors.
  *
  * - Boot time memory retirement may occur later than ideal due to dependencies
  *   on other libraries and drivers. This leaves a gap where bad memory may be
