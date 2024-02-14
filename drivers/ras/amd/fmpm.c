@@ -556,6 +556,8 @@ static int get_saved_records(void)
 		goto out_end;
 
 	while (!erst_get_record_id_next(&pos, &record_id)) {
+		if (record_id == APEI_ERST_INVALID_RECORD_ID)
+			goto out_end;
 		/*
 		 * Make sure to clear temporary buffer between reads to avoid
 		 * leftover data from records of various sizes.
