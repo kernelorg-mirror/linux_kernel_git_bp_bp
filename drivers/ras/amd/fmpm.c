@@ -596,7 +596,7 @@ static int init_fmps(void)
 
 		for_each_online_cpu(cpu) {
 			if (topology_physical_package_id(cpu) == i) {
-				fru_cpu = i;
+				fru_cpu = cpu;
 				break;
 			}
 		}
