@@ -289,10 +289,10 @@ static void update_fru_record(struct fru_rec *rec, struct mce *m)
 		goto out_unlock;
 	}
 
-	entry	  = fmp->nr_entries;
-	fpd_dest  = &rec->entries[entry];
+	entry  = fmp->nr_entries;
 
 save_fpd:
+	fpd_dest  = &rec->entries[entry];
 	memcpy(fpd_dest, &fpd, sizeof(struct cper_fru_poison_desc));
 
 	fmp->nr_entries		 = entry + 1;
