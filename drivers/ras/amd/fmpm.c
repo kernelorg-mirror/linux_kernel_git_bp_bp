@@ -584,10 +584,11 @@ static void set_fmp_fields(struct fru_rec *rec, unsigned int cpu)
 	fmp->validation_bits |= FMP_VALID_ID;
 }
 
-static void init_fmps(void)
+static int init_fmps(void)
 {
 	struct fru_rec *rec;
 	unsigned int i, cpu;
+	int ret = 0;
 
 	cpus_read_lock();
 	for_each_fru(i, rec) {
@@ -600,12 +601,18 @@ static void init_fmps(void)
 			}
 		}
 
-		if (fru_cpu < 0)
-			continue;
+		if (fru_cpu < 0) {
+			pr_debug("Failed to find matching CPU for FRU #%u", i);
+			ret = -ENODEV;
+			goto out_unlock;
+		}
 
 		set_fmp_fields(rec, fru_cpu);
 	}
+
+out_unlock:
 	cpus_read_unlock();
+	return ret;
 }
 
 static int get_system_info(void)
@@ -705,7 +712,9 @@ static int __init fru_mem_poison_init(void)
 	if (ret)
 		goto out;
 
-	init_fmps();
+	ret = init_fmps();
+	if (ret)
+		goto out_free;
 
 	ret = get_saved_records();
 	if (ret)
