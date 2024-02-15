@@ -351,11 +351,11 @@ static struct notifier_block fru_mem_poison_nb = {
 static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries)
 {
 	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
-	unsigned int cpu, err_cpu = -1;
-	unsigned int i;
+	unsigned int i, cpu;
 
 	for (i = 0; i < nr_entries; i++) {
 		struct cper_fru_poison_desc *fpd = &rec->entries[i];
+		int err_cpu = -1;
 
 		if (fpd->hw_id_type != FPD_HW_ID_TYPE_MCA_IPID)
 			continue;
@@ -371,6 +371,9 @@ static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries)
 			}
 		}
 		cpus_read_unlock();
+
+		if (err_cpu < 0)
+			continue;
 
 		retire_dram_row(fpd->addr, fpd->hw_id, err_cpu);
 	}
