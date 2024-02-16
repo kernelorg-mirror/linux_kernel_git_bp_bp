@@ -350,12 +350,12 @@ static struct notifier_block fru_mem_poison_nb = {
 	.priority	= MCE_PRIO_LOWEST,
 };
 
-static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries)
+static void retire_mem_fmp(struct fru_rec *rec)
 {
 	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
 	unsigned int i, cpu;
 
-	for (i = 0; i < nr_entries; i++) {
+	for (i = 0; i < fmp->nr_entries; i++) {
 		struct cper_fru_poison_desc *fpd = &rec->entries[i];
 		unsigned int err_cpu = INVALID_CPU;
 
@@ -383,17 +383,14 @@ static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries)
 
 static void retire_mem_records(void)
 {
-	struct cper_sec_fru_mem_poison *fmp;
 	struct fru_rec *rec;
 	unsigned int i;
 
 	for_each_fru(i, rec) {
-		fmp = &rec->fmp;
-
 		if (!rec_has_valid_entries(rec))
 			continue;
 
-		retire_mem_fmp(rec, fmp->nr_entries);
+		retire_mem_fmp(rec);
 	}
 }
 
