@@ -450,40 +450,74 @@ static int save_new_records(void)
 	return ret;
 }
 
+/* Check that the record matches expected types for the current system.*/
+static bool fmp_is_usable(struct fru_rec *rec)
+{
+	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
+	u64 cpuid;
+
+	pr_debug("Record validation bits: 0x%016llx", fmp->validation_bits);
+
+	if (!(fmp->validation_bits & FMP_VALID_ARCH_TYPE)) {
+		pr_debug("Arch type unknown");
+		return false;
+	}
+
+	if (fmp->fru_arch_type != FMP_ARCH_TYPE_X86_CPUID_1_EAX) {
+		pr_debug("Arch type not 'x86 Family/Model/Stepping'");
+		return false;
+	}
+
+	if (!(fmp->validation_bits & FMP_VALID_ARCH)) {
+		pr_debug("Arch value unknown");
+		return false;
+	}
+
+	cpuid = cpuid_eax(1);
+	if (fmp->fru_arch != cpuid) {
+		pr_debug("Arch value mismatch: record = 0x%016llx, system = 0x%016llx",
+			 fmp->fru_arch, cpuid);
+		return false;
+	}
+
+	if (!(fmp->validation_bits & FMP_VALID_ID_TYPE)) {
+		pr_debug("FRU ID type unknown");
+		return false;
+	}
+
+	if (fmp->fru_id_type != FMP_ID_TYPE_X86_PPIN) {
+		pr_debug("FRU ID type is not 'x86 PPIN'");
+		return false;
+	}
+
+	if (!(fmp->validation_bits & FMP_VALID_ID)) {
+		pr_debug("FRU ID value unknown");
+		return false;
+	}
+
+	return true;
+}
+
 static bool fmp_is_valid(struct fru_rec *rec)
 {
 	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
-	u32 len = get_fmp_len(rec);
+	u32 checksum, len;
 
-	if (!fmp)
+	len = get_fmp_len(rec);
+	if (!len) {
+		pr_debug("Record has zero length");
 		return false;
-
-	if (!len)
-		return false;
+	}
 
 	/* Checksum must sum to zero for the entire section. */
-	if (do_fmp_checksum(fmp, len))
+	checksum = do_fmp_checksum(fmp, len);
+	if (checksum) {
+		pr_debug("Record checksum failed: sum = 0x%x", checksum);
+		print_hex_dump_debug("fmp record: ", DUMP_PREFIX_NONE, 16, 1, fmp, len, false);
 		return false;
+	}
 
-	if (!(fmp->validation_bits & FMP_VALID_ARCH_TYPE))
-		return false;
-
-	if (fmp->fru_arch_type != FMP_ARCH_TYPE_X86_CPUID_1_EAX)
-		return false;
-
-	if (!(fmp->validation_bits & FMP_VALID_ARCH))
-		return false;
-
-	if (fmp->fru_arch != cpuid_eax(1))
-		return false;
-
-	if (!(fmp->validation_bits & FMP_VALID_ID_TYPE))
-		return false;
-
-	if (fmp->fru_id_type != FMP_ID_TYPE_X86_PPIN)
-		return false;
-
-	if (!(fmp->validation_bits & FMP_VALID_ID))
+	if (!fmp_is_usable(rec))
 		return false;
 
 	return true;
