@@ -456,7 +456,7 @@ static bool fmp_is_usable(struct fru_rec *rec)
 	struct cper_sec_fru_mem_poison *fmp = &rec->fmp;
 	u64 cpuid;
 
-	pr_debug("Record validation bits: 0x%016llx", fmp->validation_bits);
+	pr_debug("Validation bits: 0x%016llx", fmp->validation_bits);
 
 	if (!(fmp->validation_bits & FMP_VALID_ARCH_TYPE)) {
 		pr_debug("Arch type unknown");
@@ -504,15 +504,15 @@ static bool fmp_is_valid(struct fru_rec *rec)
 	u32 checksum, len;
 
 	len = get_fmp_len(rec);
-	if (!len) {
-		pr_debug("Record has zero length");
+	if (len < sizeof(struct cper_sec_fru_mem_poison)) {
+		pr_debug("fmp length is too small.");
 		return false;
 	}
 
 	/* Checksum must sum to zero for the entire section. */
 	checksum = do_fmp_checksum(fmp, len);
 	if (checksum) {
-		pr_debug("Record checksum failed: sum = 0x%x", checksum);
+		pr_debug("fmp checksum failed: sum = 0x%x", checksum);
 		print_hex_dump_debug("fmp record: ", DUMP_PREFIX_NONE, 16, 1, fmp, len, false);
 		return false;
 	}
