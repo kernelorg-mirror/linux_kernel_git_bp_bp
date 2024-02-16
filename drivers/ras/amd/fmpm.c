@@ -582,12 +582,14 @@ static int get_saved_records(void)
 		if (len < 0)
 			continue;
 
+		if (len > max_rec_len) {
+			pr_debug("Found record larger than max_rec_len");
+			continue;
+		}
+
 		new = get_valid_record(old);
 		if (!new)
 			erst_clear(record_id);
-
-		/* Records larger than max_rec_len were skipped earlier. */
-		len = min(max_rec_len, old->hdr.record_length);
 
 		/* Restore the record */
 		memcpy(new, old, len);
