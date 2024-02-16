@@ -54,6 +54,8 @@
 #include <asm/cpu_device_id.h>
 #include <asm/mce.h>
 
+#define INVALID_CPU			UINT_MAX
+
 /* Validation Bits */
 #define FMP_VALID_ARCH_TYPE		BIT_ULL(0)
 #define FMP_VALID_ARCH			BIT_ULL(1)
@@ -355,7 +357,7 @@ static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries)
 
 	for (i = 0; i < nr_entries; i++) {
 		struct cper_fru_poison_desc *fpd = &rec->entries[i];
-		int err_cpu = -1;
+		unsigned int err_cpu = INVALID_CPU;
 
 		if (fpd->hw_id_type != FPD_HW_ID_TYPE_MCA_IPID)
 			continue;
@@ -372,7 +374,7 @@ static void retire_mem_fmp(struct fru_rec *rec, u32 nr_entries)
 		}
 		cpus_read_unlock();
 
-		if (err_cpu < 0)
+		if (err_cpu == INVALID_CPU)
 			continue;
 
 		retire_dram_row(fpd->addr, fpd->hw_id, err_cpu);
@@ -627,28 +629,27 @@ static int init_fmps(void)
 	unsigned int i, cpu;
 	int ret = 0;
 
-	cpus_read_lock();
 	for_each_fru(i, rec) {
-		int fru_cpu = -1;
+		unsigned int fru_cpu = INVALID_CPU;
 
+		cpus_read_lock();
 		for_each_online_cpu(cpu) {
 			if (topology_physical_package_id(cpu) == i) {
 				fru_cpu = cpu;
 				break;
 			}
 		}
+		cpus_read_unlock();
 
-		if (fru_cpu < 0) {
+		if (fru_cpu == INVALID_CPU) {
 			pr_debug("Failed to find matching CPU for FRU #%u", i);
 			ret = -ENODEV;
-			goto out_unlock;
+			break;
 		}
 
 		set_fmp_fields(rec, fru_cpu);
 	}
 
-out_unlock:
-	cpus_read_unlock();
 	return ret;
 }
 
