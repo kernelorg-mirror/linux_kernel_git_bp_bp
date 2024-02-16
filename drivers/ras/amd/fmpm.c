@@ -322,7 +322,7 @@ static void retire_dram_row(u64 addr, u64 id, u32 cpu)
 	amd_retire_dram_row(&a_err);
 }
 
-static int fru_mem_poison_handler(struct notifier_block *nb, unsigned long val, void *data)
+static int fru_handle_mem_poison(struct notifier_block *nb, unsigned long val, void *data)
 {
 	struct mce *m = (struct mce *)data;
 	struct fru_rec *rec;
@@ -346,7 +346,7 @@ static int fru_mem_poison_handler(struct notifier_block *nb, unsigned long val, 
 }
 
 static struct notifier_block fru_mem_poison_nb = {
-	.notifier_call  = fru_mem_poison_handler,
+	.notifier_call  = fru_handle_mem_poison,
 	.priority	= MCE_PRIO_LOWEST,
 };
 
@@ -662,7 +662,7 @@ static int get_system_info(void)
 		return -ENODEV;
 	}
 
-	/* Use CPU Package (Socket) as FRU for MI300 systems. */
+	/* Use CPU socket as FRU for MI300 systems. */
 	max_nr_fru = topology_max_packages();
 	if (!max_nr_fru)
 		return -ENODEV;
@@ -673,8 +673,9 @@ static int get_system_info(void)
 	max_rec_len  = sizeof(struct fru_rec);
 	max_rec_len += sizeof(struct cper_fru_poison_desc) * max_nr_entries;
 
-	pr_debug("max_nr_fru=%u max_nr_entries=%u, max_rec_len=%lu",
+	pr_info("max FRUs: %u, max entries: %u, max record length: %lu",
 		 max_nr_fru, max_nr_entries, max_rec_len);
+
 	return 0;
 }
 
