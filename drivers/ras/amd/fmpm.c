@@ -522,29 +522,20 @@ static bool fmp_is_valid(struct fru_rec *rec)
 	return true;
 }
 
-static bool valid_record(struct fru_rec *old)
+static struct fru_rec *get_valid_record(struct fru_rec *old)
 {
 	struct fru_rec *new;
-	size_t len;
 
 	if (!fmp_is_valid(old)) {
 		pr_debug("Ignoring invalid record");
-		return false;
+		return NULL;
 	}
 
 	new = get_fru_record(old->fmp.fru_id);
-	if (!new) {
+	if (!new)
 		pr_debug("Ignoring record for absent FRU");
-		return false;
-	}
 
-	/* Records larger than max_rec_len were skipped earlier. */
-	len = min(max_rec_len, old->hdr.record_length);
-
-	/* Restore the record */
-	memcpy(new, old, len);
-
-	return true;
+	return new;
 }
 
 /*
@@ -557,7 +548,7 @@ static bool valid_record(struct fru_rec *old)
  */
 static int get_saved_records(void)
 {
-	struct fru_rec *old;
+	struct fru_rec *old, *new;
 	u64 record_id;
 	int ret, pos;
 	ssize_t len;
@@ -591,8 +582,15 @@ static int get_saved_records(void)
 		if (len < 0)
 			continue;
 
-		if (!valid_record(old))
+		new = get_valid_record(old);
+		if (!new)
 			erst_clear(record_id);
+
+		/* Records larger than max_rec_len were skipped earlier. */
+		len = min(max_rec_len, old->hdr.record_length);
+
+		/* Restore the record */
+		memcpy(new, old, len);
 	}
 
 out_end:
