@@ -114,11 +114,17 @@ early_param("nosgx", nosgx);
 void init_ia32_feat_ctl(struct cpuinfo_x86 *c)
 {
 	bool enable_sgx_kvm = false, enable_sgx_driver = false;
+	int ret, cpu = c->cpu_index;
 	bool tboot = tboot_enabled();
 	bool enable_vmx;
 	u64 msr;
 
-	if (rdmsrl_safe(MSR_IA32_FEAT_CTL, &msr)) {
+	ret = rdmsrl_safe(MSR_IA32_FEAT_CTL, &msr);
+
+	pr_info("%s: CPU%d: FEAT_CTL: 0x%llx, tboot: %d, ret: %d\n",
+		__func__, cpu, msr, tboot, ret);
+
+	if (ret) {
 		clear_cpu_cap(c, X86_FEATURE_VMX);
 		clear_cpu_cap(c, X86_FEATURE_SGX);
 		return;
@@ -126,6 +132,8 @@ void init_ia32_feat_ctl(struct cpuinfo_x86 *c)
 
 	enable_vmx = cpu_has(c, X86_FEATURE_VMX) &&
 		     IS_ENABLED(CONFIG_KVM_INTEL);
+
+	pr_info("%s: CPU%d: enable_vmx: %d\n", __func__, cpu, enable_vmx);
 
 	if (cpu_has(c, X86_FEATURE_SGX) && IS_ENABLED(CONFIG_X86_SGX)) {
 		/*
@@ -165,6 +173,9 @@ void init_ia32_feat_ctl(struct cpuinfo_x86 *c)
 			msr |= FEAT_CTL_SGX_LC_ENABLED;
 	}
 
+	pr_info("%s: CPU%d: Write FEAT_CTL: 0x%llx\n",
+		__func__, cpu, msr);
+
 	wrmsrl(MSR_IA32_FEAT_CTL, msr);
 
 update_caps:
@@ -176,8 +187,8 @@ update_caps:
 	if ( (tboot && !(msr & FEAT_CTL_VMX_ENABLED_INSIDE_SMX)) ||
 	    (!tboot && !(msr & FEAT_CTL_VMX_ENABLED_OUTSIDE_SMX))) {
 		if (IS_ENABLED(CONFIG_KVM_INTEL))
-			pr_err_once("VMX (%s TXT) disabled by BIOS\n",
-				    tboot ? "inside" : "outside");
+			pr_err("CPU%d: VMX (%s TXT) disabled by BIOS\n",
+				    cpu, tboot ? "inside" : "outside");
 		clear_cpu_cap(c, X86_FEATURE_VMX);
 	} else {
 #ifdef CONFIG_X86_VMX_FEATURE_NAMES
