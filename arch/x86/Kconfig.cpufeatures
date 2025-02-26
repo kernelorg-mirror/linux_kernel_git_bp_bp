@@ -195,3 +195,7 @@ config X86_DISABLED_FEATURE_FRED
 config X86_DISABLED_FEATURE_SEV_SNP
 	def_bool y
 	depends on !KVM_AMD_SEV
+
+config X86_DISABLED_FEATURE_INVLPGB
+	def_bool y
+	depends on !BROADCAST_TLB_FLUSH
