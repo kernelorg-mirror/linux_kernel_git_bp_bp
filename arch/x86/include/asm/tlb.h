@@ -29,6 +29,7 @@ static inline void invlpg(unsigned long addr)
 }
 
 
+#ifdef CONFIG_BROADCAST_TLB_FLUSH
 /*
  * INVLPGB does broadcast TLB invalidation across all the CPUs in the system.
  *
@@ -74,6 +75,14 @@ static inline void __tlbsync(void)
 	/* TLBSYNC: supported in binutils >= 0.36. */
 	asm volatile(".byte 0x0f, 0x01, 0xff" ::: "memory");
 }
+#else
+/* Some compilers simply can't do DCE */
+static inline void __invlpgb(unsigned long asid, unsigned long pcid,
+			     unsigned long addr, u16 nr_pages,
+			     bool pmd_stride, u8 flags) { }
+
+static inline void __tlbsync(void) { }
+#endif
 
 /*
  * INVLPGB can be targeted by virtual address, PCID, ASID, or any combination
