@@ -219,7 +219,7 @@ dc = None
 # my words
 dc_words = [ "3rd", "accessor", "ACPI", "allocator",
          # that's some stupid dictionary
-         "amongst", "AMX", "APEI", "arm64", "ASID", "asm", "ATL", "AutoIBRS", "axe",
+         "amongst", "AMX", "APEI", "arm64", "asm", "ATL", "AutoIBRS", "axe",
          "BDA", "binutils", "bool", "breakpoint", "bringup", "brk", "BTF", "btree",
          "C1E", "cacheline", "callee", "CET", "CFI", "checkable", "chronomancy", "CLAC", "clocksource", "CMCI",
          "cmdline", "CMOV", "CMOS",
@@ -228,15 +228,16 @@ dc_words = [ "3rd", "accessor", "ACPI", "allocator",
          "DCT", "debugfs", "decompressor", "detangle", "devicetree",
          "DF", "dmesg", "DOSEMU", "DPL",
          "e820", "EAX", "EBDA", "ECC", "EDAC", "EFER", "EHCI", "enablement", "enum",
-         "ENDBR", "ENQCMD", "EOI", "EPT", "EPYC", "ERMS", "FADT", "filesystem",
+         "ENDBR", "ENQCMD", "EOI", "EPT", "EPYC", "ERMS", "exfiltrate", "FADT", "filesystem",
          "fixup", "GART", "gcc", "GCM", "GCOV", "GHES", "goto", "GSBASE", "GUID",
-         "HEST", "hotplug", "hugepage", "Hygon",
+         "HEST", "hotplug", "HPET", "hugepage", "Hygon",
          "HyperV", "HugeTLB", "HV", "hwpoison",
          "i915", "I/O", "iff", "IOIO", "IA32", "IBS", "IMA",
          "immediates", "init",
          "interposer", "IOMMU", "IOW", "IPID", "IRQ", "ISR", "Jcc", "JEDEC",
          "kallsyms", "Kbuild", "Kconfig", "kdump", "kexec", "kmemleak", "kobject", "kPTI",
-         "LFENCE", "linux", "livepatch", "LJMP", "LKGS", "LLCC", "lockdep", "lookups", "LSB", "LTO",
+         "LFENCE", "linux", "livepatch", "LJMP", "LKGS", "LLCC", "lockdep", "lookups", "Loongson",
+         "LRU", "LSB", "LTO",
          "lvalue", "LVT", "MADT",
          "madvise", "maintainership", "Makefile", "MBM",
          "MCE", "MDS", "memfd", "memmap", "mispredicted", "mitigations", "MKTME", "MMIO", "MMU", "ModRM", "mutex",
@@ -246,7 +247,7 @@ dc_words = [ "3rd", "accessor", "ACPI", "allocator",
          "passthrough", "pdf", "percpu",
          "perf", "PKRU", "PMC", "PPIN", "preemptible",
          "prepend", # derived from append, not in the dictionaries
-         "prefetch", "preprocessor", "printk", "proc", "PSE", "PSMASH", "pstore", "pthread", "PTI",
+         "preprocessor", "printk", "proc", "PSE", "PSMASH", "pstore", "pthread", "PTI",
          "PV", "PVALIDATE", "QEMU",
          "RAS", "rasdaemon", "ratelimit", "realtime", "rebase", "refcount", "resctrl", "repurposing", "RCU",
          "RDPKRU", "RDT", "RET",
@@ -254,7 +255,7 @@ dc_words = [ "3rd", "accessor", "ACPI", "allocator",
          "s390", "SAVEPREVSSP", "scalable", "seccomp", "selftest", "SETcc", "severities", "SGDT",
          "SGX", "SHSTK", "sideband", "Skylake", "SLS", "Smatch", "SMBA", "SMN", "SNC", "SoC", "softlockup", "SPDX",
          "SPI", "spinlock", "SRBDS", "SRSO",
-         "STAC", "STLF", "stringify", "struct", "SVSM", "SWAPGS", "swiotlb",
+         "STAC", "STLF", "stringify", "SVSM", "SWAPGS", "swiotlb",
          "symtab", "Synopsys", "SYSENTER", "sysfs", "TAA", "TDCALL", "TDGETVEINFO",
          "TDVMCALL", "tl;dr", "tmpfs", "TMR", "TODO",
          "TPM", "TLS", "TZCNT", "UAPI", "UC", "UD2", "uarch", "udev", "UMIP", "uncore",
@@ -276,7 +277,7 @@ known_vars = [ 'alignof', '__BOOT_DS', 'boot_cpu_data', 'bzImage', 'clearcpuid',
 regexes_pats = [ r'^(32|64)-?bit$',
             r'^U?ABI$', r'^AE[RS]$', r'^AES-GCM$',
             r'^all(mod|yes)config$', r'^AMD(64)?$',
-            r'^AP([IMU])?s?$', r'^(v|x2?)?A[PV]ICs?$', r'^[kK]?ASLR$',
+            r'^AP([IMU])?s?$', r'^(v|x2?)?A[PV]ICs?$', r'^ASIDs?$', r'^[kK]?ASLR$',
             r'^AVX(512)?(-FP16)?$', r'backends?$', r'^backport(ed)?$',
             r'BIOS(e[sn])?', r'^bit(field|mask)s?$', r'[Bb]oolean$', r'boot(able|loader|up)',
             r'boot_params([\.\w_]+)?$',
@@ -309,7 +310,7 @@ regexes_pats = [ r'^(32|64)-?bit$',
             r'^([Pp]ara)?virt(ualiz(ed|ing|ation))?$',
             # embedded modifier which goes at the beginning of the regex
             r'(?i)^pasid$', r'^PCI[De]?$', r'^per-(cpu|CPU)$', r'(?i)^P(TE|[GM]D)s?$', r'^PFNs?$',
-            r'PS[CP]', r'^P[MU]D$',
+            r'^prefetch(ers?)$', r'PS[CP]', r'^P[MU]D$',
             r'^Q[oO]S$',
             r'RD(MSR|RAND|SEED|TSCP?)$', r'^reloc(ation)?s?$', r'^[IL]RET$', r'[Rr]etpolines?$',
             r'^[rR]IP$',
@@ -319,7 +320,7 @@ regexes_pats = [ r'^(32|64)-?bit$',
             r'^SH[LR]$', r'^sig(frame|return)$', r'^(sig)?longjmp$', r'^SIG(BUS|SEGV)$',
             r'^SM[ET]$', r'^S[MNS]P$',
             r'^SM[AE]P$', r'^S[oO]Cs?$', r'^[Ss]pectre(_v2)*$', r'SRA[ST]$', r'^steppings?$', r'^STI(BP)?$',
-            r'^str(lcat|[lns]cpy|tab)$', r'(?i)^SV[AM]$', r'TC[BC]$',
+            r'^str(lcat|[lns]cpy|tab)$', r'^structs?$', r'(?i)^SV[AM]$', r'TC[BC]$',
             r'T[DS]X', r'^TESTL?$', r'^TLB(SYNC|s)?$', r'^TOM2?$', r'^tracepoints?$', r'^TS[CS]$',
             r'^u(16|32|64)$',
             r'^U?EFI$', r'^UM[CL]s?$', r'^unmap(ping)?$',
@@ -800,7 +801,7 @@ def spellcheck(s, where, flags):
                 dbg(f"Skip '_'-containing word: [{w}]")
                 continue
 
-            if not dc.check(w):
+            if len(w) and not dc.check(w):
                 # see if it is plural or genitive: "<word>'s"
                 if dc.check(w.removesuffix('\'s')):
                     continue
@@ -1278,8 +1279,10 @@ f"""Class patch:
                 return
 
         # WIP: make sure there's no second ':' in the subject
-        # needs improving
-        if not re.match(r'^x86(/[\w/-]+)?:[^:]*$', self.subject):
+        # - skip [RFC/PATCH...] etc at the beginning, if present
+        # - then match the crap before : and then after.
+        # Needs improving with time
+        if not re.match(r'^(\[.*\]\s)?x86/.*:[^:].*$', self.subject):
             warn(f"Subject prefix wrong: [{ self.subject }]")
 
     def verify_commit_message(self):
@@ -1719,12 +1722,7 @@ def main(args):
         # re_flags |= re.DEBUG
         verbose = args.verbose
 
-    input_file  = args.infile[0]
-    if not os.path.isfile(input_file):
-        sys.stderr.write(f"Cannot access { input_file }, exiting...\n")
-        sys.exit(1)
-
-    with open(input_file, 'rb') as fp:
+    with open(args.infile[0], 'rb') as fp:
         msg = BytesParser(policy=policy.default).parse(fp)
 
     if args.add_to_whitelist:
@@ -1835,6 +1833,14 @@ if __name__ == '__main__':
     args = init_parser()
 
     refresh_ntlk_modules()
+
+    # prep infile before switching CWD
+    input_file = os.path.abspath(args.infile[0])
+    if not os.path.isfile(input_file):
+        sys.stderr.write(f"Cannot access { input_file }, exiting...\n")
+        sys.exit(1)
+
+    args.infile[0] = input_file
 
     # check if we're in a git repo
     if not os.path.exists(os.getcwd() + "/.git"):
