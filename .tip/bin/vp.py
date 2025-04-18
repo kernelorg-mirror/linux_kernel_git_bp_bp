@@ -200,10 +200,16 @@ def verify_commit_ref(sha1, name):
 
     # check sha1 is in the repo
     try:
-        git.tag('--contains', sha1)
+        tags=git.tag('--sort=creatordate', '--contains', sha1)
     except Exception as e:
         sys.stderr.write(f"verify_commit_ref: SHA1 not in repo: {e}\n")
         sys.exit(1)
+
+    upstream_tag_pat = re.compile("^v[0-9]+.[0-9]+.*")
+    for t in tags.splitlines():
+        if upstream_tag_pat.match(t):
+            print(f"Tag containing commit: {t}")
+            break
 
     # compare the commit names too
     name = name.removeprefix('("').removesuffix('")')
@@ -220,8 +226,8 @@ dc = None
 dc_words = [ "3rd", "accessor", "ACPI", "allocator",
          # that's some stupid dictionary
          "amongst", "AMX", "APEI", "arm64", "asm", "ATL", "AutoIBRS", "axe",
-         "BDA", "binutils", "bool", "breakpoint", "bringup", "brk", "BTF", "btree",
-         "C1E", "cacheline", "callee", "CET", "CFI", "checkable", "chronomancy", "CLAC", "clocksource", "CMCI",
+         "baremetal", "BDA", "binutils", "bool", "breakpoint", "bringup", "brk", "BTF", "btree",
+         "C1E", "C99", "cacheline", "callee", "CET", "CFI", "checkable", "chronomancy", "CLAC", "clocksource", "CMCI",
          "cmdline", "CMOV", "CMOS",
          "CMPXCHG", "Coccinelle", "codename", "CPER", "CPPC", "CPUID", "crashdump", "CRIU",
          "CXL", "Cyrix",
@@ -229,39 +235,41 @@ dc_words = [ "3rd", "accessor", "ACPI", "allocator",
          "DF", "dmesg", "DOSEMU", "DPL",
          "e820", "EAX", "EBDA", "ECC", "EDAC", "EFER", "EHCI", "enablement", "enum",
          "ENDBR", "ENQCMD", "EOI", "EPT", "EPYC", "ERMS", "exfiltrate", "FADT", "filesystem",
-         "fixup", "GART", "gcc", "GCM", "GCOV", "GHES", "goto", "GSBASE", "GUID",
+         "fixup", "FreeBSD",
+         "GART", "gcc", "GCM", "GCOV", "GHES", "goto", "GPIO", "GSBASE", "GUID",
          "HEST", "hotplug", "HPET", "hugepage", "Hygon",
          "HyperV", "HugeTLB", "HV", "hwpoison",
          "i915", "I/O", "iff", "IOIO", "IA32", "IBS", "IMA",
          "immediates", "init",
-         "interposer", "IOMMU", "IOW", "IPID", "IRQ", "ISR", "Jcc", "JEDEC",
+         "interposer", "IOMMU", "IOW", "IPID", "IRQ", "Jcc", "JEDEC",
          "kallsyms", "Kbuild", "Kconfig", "kdump", "kexec", "kmemleak", "kobject", "kPTI",
-         "LFENCE", "linux", "livepatch", "LJMP", "LKGS", "LLCC", "lockdep", "lookups", "Loongson",
-         "LRU", "LSB", "LTO",
-         "lvalue", "LVT", "MADT",
+         "LBR", "LFENCE", "linux", "livepatch", "LJMP", "LKGS", "LLCC", "lockdep", "lookups", "Loongson",
+         "LRU", "LTO",
+         "lvalue", "LVT", "LWP",
+         "MADT",
          "madvise", "maintainership", "Makefile", "MBM",
          "MCE", "MDS", "memfd", "memmap", "mispredicted", "mitigations", "MKTME", "MMIO", "MMU", "ModRM", "mutex",
          "namespace", "NIST", "NOHZ", "northbridge", "NPT", "NUMA", "NX",
          "OEM", "offlist", "ok", "oneliner", "onlined", "ORL", "OSPM", "OVMF", "PAE",
          "pahole", "paravisor", "parsers",
-         "passthrough", "pdf", "percpu",
-         "perf", "PKRU", "PMC", "PPIN", "preemptible",
+         "passthrough", "PCONFIG", "pdf", "percpu",
+         "perf", "PKRU", "PPIN", "preemptible",
          "prepend", # derived from append, not in the dictionaries
          "preprocessor", "printk", "proc", "PSE", "PSMASH", "pstore", "pthread", "PTI",
          "PV", "PVALIDATE", "QEMU",
          "RAS", "rasdaemon", "ratelimit", "realtime", "rebase", "refcount", "resctrl", "repurposing", "RCU",
-         "RDPKRU", "RDT", "RET",
+         "RDT", "RET",
          "rFLAGS", "RNG", "ROP", "RSB", "RSTORSSP", "runtime", "Ryzen",
          "s390", "SAVEPREVSSP", "scalable", "seccomp", "selftest", "SETcc", "severities", "SGDT",
          "SGX", "SHSTK", "sideband", "Skylake", "SLS", "Smatch", "SMBA", "SMN", "SNC", "SoC", "softlockup", "SPDX",
-         "SPI", "spinlock", "SRBDS", "SRSO",
+         "SPI", "spinlock", "SRBDS", "SRSO", "SSB",
          "STAC", "STLF", "stringify", "SVSM", "SWAPGS", "swiotlb",
          "symtab", "Synopsys", "SYSENTER", "sysfs", "TAA", "TDCALL", "TDGETVEINFO",
-         "TDVMCALL", "tl;dr", "tmpfs", "TMR", "TODO",
-         "TPM", "TLS", "TZCNT", "UAPI", "UC", "UD2", "uarch", "udev", "UMIP", "uncore",
-         "unmapped", "unwinder", "userspace", "vDSO", "VERW", "vfork", "VLA", "VMMCALL",
-         "WBINVD", "workqueue",
-         "x32", "XCR0", "Xeon", "Xilinx", "xmm", "XSS", "Zhaoxin" ]
+         "TDVMCALL", "TLS", "tl;dr", "tmpfs", "TMR", "TMUL", "TODO",
+         "TPM", "Transmeta", "TZCNT", "UAPI", "UC", "UD2", "uarch", "udev", "UMIP", "uncore",
+         "unmapped", "unwinder", "uptime", "userspace", "vDSO", "VERW", "vfork", "VGIF", "VLA", "VMMCALL",
+         "WBINVD", "WBNOINVD", "workqueue",
+         "x32", "XCR0", "Xeon", "Xilinx", "xmm", "XOP", "XSS", "Zhaoxin" ]
 
 dc_non_words = [ "E820", "X86" ]
 
@@ -269,19 +277,19 @@ dc_non_words = [ "E820", "X86" ]
 known_vars = [ 'alignof', '__BOOT_DS', 'boot_cpu_data', 'bzImage', 'clearcpuid', 'cpumask', 'dom0', 'earlyprintk',
            'fpstate', 'gfn', 'hva', 'idtentry', 'kobj_type',
            'kptr_restrict', 'kthread', 'libvirt', 'noinstr', 'offsetof', 'pt_regs',
-           'pte_t', 'ptr', 'pvops', 'readelf', 'realmode', 'set_lvt_off', 'setup_data', 'shstk',
-           'sme_me_mask', 'sysctl_perf_event_paranoid', 'threshold_banks', 'vfio', 'virtio_gpu',
+           'pte_t', 'ptr', 'pvops', 'readelf', 'realmode', 's2idle', 'set_lvt_off', 'setup_data', 'shstk',
+           'sme_me_mask', 'sudo', 'sysctl_perf_event_paranoid', 'threshold_banks', 'vfio', 'virtio_gpu',
            'xarray', ]
 
 # known words as regexes to avoid duplication in the list above
 regexes_pats = [ r'^(32|64)-?bit$',
             r'^U?ABI$', r'^AE[RS]$', r'^AES-GCM$',
             r'^all(mod|yes)config$', r'^AMD(64)?$',
-            r'^AP([IMU])?s?$', r'^(v|x2?)?A[PV]ICs?$', r'^ASIDs?$', r'^[kK]?ASLR$',
+            r'^AP([IMU])?s?$', r'^(v|x2?|L)?A[PV]ICs?$', r'^ASIDs?$', r'^[kK]?ASLR$',
             r'^AVX(512)?(-FP16)?$', r'backends?$', r'^backport(ed)?$',
             r'BIOS(e[sn])?', r'^bit(field|mask)s?$', r'[Bb]oolean$', r'boot(able|loader|up)',
             r'boot_params([\.\w_]+)?$',
-            r'BS[FPS]$', r'^B[HT]B$',
+            r'BS[FPS]$', r'^B[HT]B$', r'^bugfix(es)?$',
             r'^C[1-6]$', r'^C[BS]M$', r'^CC[DPX]s?$', r'^CMP(XCHG)?$',
             r'^configs?$', r'^const(ify)?$',
             r'^CPU(\d+|s)?$', r'^cpuinfo(_x86)?$', r'^CR[0-4]$', r'^crypto(graphic)?$',
@@ -291,14 +299,14 @@ regexes_pats = [ r'^(32|64)-?bit$',
             r'^[Ee].g.$', r'^[eE]?IBRS$', r'ERET[SU]$', r'^externs?$', r'^E?VEX$',
             r'^fixups?$', r'^F[PR]Us?$', r'^[pf]trace$',
             r'^GD[BT]$', r'^GHC(B|I)s?$', r'g?libc$', r'^GPL$', r'^GP[RU]s?$',
-            r'^hardcoded?$', r'^HBM[2-3]?$', r'^HL[ET]$', r'^hypercalls?$',
+            r'^hardcoded?$', r'^HBM[2-3]?$', r'^HL[ET]$', r'^hypercalls?$', r'^hyperthreads?$',
             r'^i38[67]$',
             r'^Icelake(-D)?$', r'I[BDS]T$', r'[IS]BPB$', r'^ifdef(fery|s)$',
             r'^INCSSPQ?$', r'init(ializer|rd|ramfs)?',
             r'^(in|off)lin(ing|e[ds])$', r'^INT[13]$', r'^[Ii]nvalidations?$', r'^INVLPGB?$',
-            r'^ioctls?$', r'^S?IPIs?$',
+            r'^ioctls?$', r'^S?IPIs?$', r'I[RS]R$',
             r'(?i)^jmp$', r'^(K[ACM]|UB)SAN$', r'(?i)^kaslr$', r'^(k[cm]|vm)alloc$',
-            r'^[ku]probes?$', r'(?i)kvm$', r'^L[0-3]$', r'^LL(C|VM)$',
+            r'^[ku]probes?$', r'(?i)kvm$', r'^L[0-3]$', r'^LL(C|VM)$', r'^LS[BL]$',
             r'^(fix|iore|m)maps?$',
             r'S?MCA$', r'^[Mm]em(block|cpy|move|remap|set|type)$', r'^memslots?$',
             r'^MI[23]00$', r'^microarchitectur(al|e)$', r'^mispredict(ed)?$', r'^mmap(ping)?$',
@@ -310,9 +318,9 @@ regexes_pats = [ r'^(32|64)-?bit$',
             r'^([Pp]ara)?virt(ualiz(ed|ing|ation))?$',
             # embedded modifier which goes at the beginning of the regex
             r'(?i)^pasid$', r'^PCI[De]?$', r'^per-(cpu|CPU)$', r'(?i)^P(TE|[GM]D)s?$', r'^PFNs?$',
-            r'^prefetch(ers?)$', r'PS[CP]', r'^P[MU]D$',
+            r'^PM[CU]$', r'^prefetch(ers?)$', r'PS[CP]', r'^P[MU]D$',
             r'^Q[oO]S$',
-            r'RD(MSR|RAND|SEED|TSCP?)$', r'^reloc(ation)?s?$', r'^[IL]RET$', r'[Rr]etpolines?$',
+            r'RD(MSR|PID|PKRU|RAND|SEED|TSCP?)$', r'^reloc(ation)?s?$', r'^[IL]RET$', r'[Rr]etpolines?$',
             r'^[rR]IP$',
             r'^RMIDs?$', r'^RMP(ADJUST|READ|UPDATE)?$', r'^RT[CM]$',
             r'^S[DM]M$',
@@ -321,7 +329,7 @@ regexes_pats = [ r'^(32|64)-?bit$',
             r'^SM[ET]$', r'^S[MNS]P$',
             r'^SM[AE]P$', r'^S[oO]Cs?$', r'^[Ss]pectre(_v2)*$', r'SRA[ST]$', r'^steppings?$', r'^STI(BP)?$',
             r'^str(lcat|[lns]cpy|tab)$', r'^structs?$', r'(?i)^SV[AM]$', r'TC[BC]$',
-            r'T[DS]X', r'^TESTL?$', r'^TLB(SYNC|s)?$', r'^TOM2?$', r'^tracepoints?$', r'^TS[CS]$',
+            r'T[DS]X', r'^TESTL?$', r'^(hr)?timers?$', r'^TLB(SYNC|s)?$', r'^TOM2?$', r'^tracepoints?$', r'^TS[CS]$',
             r'^u(16|32|64)$',
             r'^U?EFI$', r'^UM[CL]s?$', r'^unmap(ping)?$',
             r'(?i)^un(cache(e?able|d)|correctable|initialized|map|mount|trusted)$',
@@ -329,8 +337,8 @@ regexes_pats = [ r'^(32|64)-?bit$',
             r'^vmlinu[zx]$',
             r'^v?syscalls?$', r'^vT[OP]M$', r'^VMAs?$', r'^VMSAs?$', r'^VMs?$', r'^VMC[BS]$',
             r'^VMG?E(xit|XIT)$', r'^VM[MX]?$',
-            r'^VM(CALL|ENTER|LAUNCH|RESUME|RUN|ware)$', r'^VMPCKs?$',
-            r'^VMPL([0-3])?$', r'^[dq]words?$', r'^WRMSR(NS)?$', r'^WRU?SS$',
+            r'^VM(CALL|ENTER|LAUNCH|RESUME|RUN|ware)$', r'VMMs?$', r'^VMPCKs?$',
+            r'^VMPL([0-3])?$', r'^[dq]words?$', r'^WR(MSR(NS)|PKRU|U?SS)$',
             r'^x86(-(32|64))?$', r'^(Xen(PV)?|XENPV)$', r'^xfeatures?$', r'^XSAVE[CS]?$', r'^[CX]STATE$',
             r'^[Zz]en[1-5]$' ]
 
@@ -613,7 +621,7 @@ def spellcheck(s, where, flags):
                 w = w.rstrip('.')
 
             # remove punctuation, etc
-            w = w.strip('`\',*+:;\!|<>"=^')
+            w = w.strip('`\',*+:;!|<>"=^')
 
             # remove prepended chars: well, you can't do that here because that breaks the GPR
             # matching below.
@@ -625,7 +633,7 @@ def spellcheck(s, where, flags):
                 continue
 
             # remove other punctuation after brackets stripping, ex the '!' in "(uninitialized!)"
-            w = w.strip('`\',*+:;\!|<>"=^')
+            w = w.strip('`\',*+:;!|<>"=^')
 
             if not w:
                 continue
@@ -918,7 +926,7 @@ f"""Class patch:
         s = re.sub(r'\n', '', s)
 
         # fixup EDAC prefix, needs to happen before the split as it uses the ':' as a sep
-        s = re.sub(r'edac:\s([a-z0-9]+)_edac:', r'EDAC/\1:', s, re.I)
+        s = re.sub(r'edac:\s([a-z0-9]+)_edac:', r'EDAC/\1:', s, flags=re.I)
 
         try:
             (prefix, title) = s.rsplit(':', 1)
@@ -1355,21 +1363,26 @@ f"""Class patch:
                 warn(f" Link: {url}")
 
                 # skip previous links, add the others like bugzilla, etc refs.
-                if url.startswith("https://lore.kernel.org/r/"):
-                    continue
+                # can't really skip things anymore
+                # if url.startswith("https://lore.kernel.org/"):
+                #    continue
 
-            info(f"Link: {url}")
-            f.write(f"Link: {url}\n")
+                info(f"Link: {url}")
+                f.write(f"Link: {url}\n")
 
         if self.message_id:
-            link_url = f"https://lore.kernel.org/r/{ self.message_id }"
+            link_url = f"https://lore.kernel.org/{ self.message_id }"
             prefix = ""
 
             # check it
             if not self.no_link:
                 try:
-                    get = requests.get(link_url)
-                    if get.status_code != 200:
+                    # Set user agent for k.org
+                    headers = {
+                        "User-Agent": "Boris patch massager script vp.py (bp@alien8.de)"
+                    }
+                    get = requests.head(link_url, headers=headers)
+                    if get.status_code != 302:
                         err(f"Link URL { link_url } not reachable, status_code: { get.status_code }")
                 except requests.exceptions.RequestException as e:
                     warn(f"Exception {e} while trying to get URL: { link_url }")
