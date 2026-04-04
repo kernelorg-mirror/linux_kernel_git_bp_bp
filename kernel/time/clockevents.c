@@ -172,6 +172,7 @@ void clockevents_shutdown(struct clock_event_device *dev)
 {
 	clockevents_switch_state(dev, CLOCK_EVT_STATE_SHUTDOWN);
 	dev->next_event = KTIME_MAX;
+	dev->next_event_forced = 0;
 }
 
 /**
@@ -224,13 +225,7 @@ static int clockevents_increase_min_delta(struct clock_event_device *dev)
 	return 0;
 }
 
-/**
- * clockevents_program_min_delta - Set clock event device to the minimum delay.
- * @dev:	device to program
- *
- * Returns 0 on success, -ETIME when the retry loop failed.
- */
-static int clockevents_program_min_delta(struct clock_event_device *dev)
+static int __clockevents_program_min_delta(struct clock_event_device *dev)
 {
 	unsigned long long clc;
 	int64_t delta;
@@ -263,13 +258,7 @@ static int clockevents_program_min_delta(struct clock_event_device *dev)
 
 #else  /* CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST */
 
-/**
- * clockevents_program_min_delta - Set clock event device to the minimum delay.
- * @dev:	device to program
- *
- * Returns 0 on success, -ETIME when the retry loop failed.
- */
-static int clockevents_program_min_delta(struct clock_event_device *dev)
+static int __clockevents_program_min_delta(struct clock_event_device *dev)
 {
 	unsigned long long clc;
 	int64_t delta = 0;
@@ -291,6 +280,21 @@ static int clockevents_program_min_delta(struct clock_event_device *dev)
 }
 
 #endif /* CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST */
+
+/**
+ * clockevents_program_min_delta - Set clock event device to the minimum delay.
+ * @dev:	device to program
+ *
+ * Returns 0 on success, -ETIME when the retry loop failed.
+ */
+static int clockevents_program_min_delta(struct clock_event_device *dev)
+{
+	if (dev->next_event_forced)
+		return 0;
+
+	dev->next_event_forced = 1;
+	return __clockevents_program_min_delta(dev);
+}
 
 /**
  * clockevents_program_event - Reprogram the clock event device.
@@ -324,16 +328,18 @@ int clockevents_program_event(struct clock_event_device *dev, ktime_t expires,
 		return dev->set_next_ktime(expires, dev);
 
 	delta = ktime_to_ns(ktime_sub(expires, ktime_get()));
-	if (delta <= 0)
-		return force ? clockevents_program_min_delta(dev) : -ETIME;
 
-	delta = min(delta, (int64_t) dev->max_delta_ns);
-	delta = max(delta, (int64_t) dev->min_delta_ns);
+	if (!dev->next_event_forced || delta > dev->min_delta_ns) {
 
-	clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
-	rc = dev->set_next_event((unsigned long) clc, dev);
+		delta = min(delta, (int64_t) dev->max_delta_ns);
+		delta = max(delta, (int64_t) dev->min_delta_ns);
+		clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
+		rc = dev->set_next_event((unsigned long) clc, dev);
+		if (!rc)
+			return 0;
+	}
 
-	return (rc && force) ? clockevents_program_min_delta(dev) : rc;
+	return force ? clockevents_program_min_delta(dev) : rc;
 }
 
 /*
